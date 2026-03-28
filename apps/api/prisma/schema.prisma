@@ -392,3 +392,40 @@ model EntitlementAudit {
   @@index([createdAt])
   @@map("entitlement_audits")
 }
+
+// ─── Admin: Feature Flags & Audit ──────────────────────────
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  enabled     Boolean  @default(false)
+  description String?
+  /** JSON rules: percentage rollout, user IDs, etc. */
+  rules       Json?
+  /** If true, this flag is a kill-switch (disabling a live feature) */
+  isKillSwitch Boolean @default(false)
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+  @@map("feature_flags")
+}
+
+model AdminAudit {
+  id          String   @id @default(cuid())
+  adminUserId String
+  action      String
+  resource    String
+  resourceId  String?
+  before      Json?
+  after       Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([adminUserId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("admin_audits")
+}

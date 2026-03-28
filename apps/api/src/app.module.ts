@@ -12,6 +12,7 @@ import { StoryEngineModule } from './modules/story-engine/story-engine.module';
 import { AvatarsModule } from './modules/avatars/avatars.module';
 import { VoicePipelineModule } from './modules/voice-pipeline/voice-pipeline.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { HealthModule } from './modules/health/health.module';
 import { appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig, subscriptionConfig } from './config';
 
@@ -38,6 +39,7 @@ import { appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, 
     AvatarsModule,
     VoicePipelineModule,
     SubscriptionModule,
+    AdminModule,
     HealthModule,
   ],
   providers: [
