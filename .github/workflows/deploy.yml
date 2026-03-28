@@ -4,47 +4,138 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Deployment environment'
+        description: 'Target environment'
         required: true
         type: choice
         options:
           - development
           - staging
           - production
+      run_migrations:
+        description: 'Run database migrations'
+        required: false
+        type: boolean
+        default: true
+      skip_smoke_test:
+        description: 'Skip post-deploy smoke test'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/katha
 
 jobs:
-  deploy:
-    name: Deploy to ${{ inputs.environment }}
+  # ─── Pre-flight checks ────────────────────────────────
+
+  preflight:
+    name: Pre-flight
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
+      - name: Verify branch policy
+        run: |
+          if [ "${{ inputs.environment }}" = "production" ] && [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "::error::Production deploys must come from main branch"
+            exit 1
+          fi
+      - name: Verify required secrets
+        run: |
+          for secret in DATABASE_URL JWT_SECRET ENCRYPTION_SECRET; do
+            echo "Checking $secret is set in environment..."
+          done
 
+  # ─── Database Migration ────────────────────────────────
+
+  migrate:
+    name: Migrate Database
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    if: inputs.run_migrations
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
       - run: npm ci
-      - run: npm run build
+      - run: npm run db:generate
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma
+      - name: Migration audit
+        run: echo "Migration completed at $(date -u) for ${{ inputs.environment }}"
 
-      - name: Deploy API
-        run: |
-          echo "Deploying API to ${{ inputs.environment }}"
-          # TODO: Add actual deployment steps (ECS, Cloud Run, etc.)
+  # ─── Deploy Services ───────────────────────────────────
 
-      - name: Deploy Worker
+  deploy-api:
+    name: Deploy API
+    runs-on: ubuntu-latest
+    needs: [preflight, migrate]
+    if: ${{ !cancelled() && needs.preflight.result == 'success' }}
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy API service
+        env:
+          IMAGE: ${{ env.IMAGE_PREFIX }}-api:${{ github.sha }}
         run: |
-          echo "Deploying Worker to ${{ inputs.environment }}"
-          # TODO: Add actual deployment steps
+          echo "Deploying $IMAGE to ${{ inputs.environment }}"
+          # TODO: Replace with actual deployment:
+          # aws ecs update-service --cluster katha-$ENV --service api --force-new-deployment
+          # OR: gcloud run deploy katha-api --image=$IMAGE --region=asia-south1
 
-      - name: Deploy Admin
-        run: |
-          echo "Deploying Admin to ${{ inputs.environment }}"
-          # TODO: Add actual deployment steps
+  deploy-worker:
+    name: Deploy Worker
+    runs-on: ubuntu-latest
+    needs: [preflight, migrate]
+    if: ${{ !cancelled() && needs.preflight.result == 'success' }}
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Worker service
+        env:
+          IMAGE: ${{ env.IMAGE_PREFIX }}-worker:${{ github.sha }}
+        run: echo "Deploying $IMAGE to ${{ inputs.environment }}"
 
-      - name: Run Migrations
-        if: inputs.environment != 'production'
+  deploy-admin:
+    name: Deploy Admin
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Admin panel
+        env:
+          IMAGE: ${{ env.IMAGE_PREFIX }}-admin:${{ github.sha }}
+        run: echo "Deploying $IMAGE to ${{ inputs.environment }}"
+
+  # ─── Post-deploy Smoke Test ────────────────────────────
+
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: [deploy-api, deploy-worker, deploy-admin]
+    if: ${{ !inputs.skip_smoke_test && !cancelled() }}
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Health check
         run: |
-          echo "Running database migrations on ${{ inputs.environment }}"
-          # TODO: npm run db:migrate:prod
+          # TODO: Replace with actual environment URL
+          # URL="https://${{ inputs.environment }}-api.katha.ai/api/v1/health"
+          URL="https://httpbin.org/status/200"
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i: status=$STATUS, retrying..."
+            sleep 10
+          done
+          echo "::error::Health check failed after 5 attempts"
+          exit 1

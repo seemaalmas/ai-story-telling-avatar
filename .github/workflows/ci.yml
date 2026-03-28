@@ -6,37 +6,49 @@ on:
   pull_request:
     branches: [main, develop]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/katha
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
 
 jobs:
+  # ─── Quality Gates ──────────────────────────────────────
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - run: npm ci
       - run: npm run lint
+      - run: npm run format:check
 
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - run: npm ci
       - run: npm run typecheck
+
+  # ─── Tests ──────────────────────────────────────────────
 
   test:
     name: Tests
@@ -48,41 +60,58 @@ jobs:
           POSTGRES_USER: katha
           POSTGRES_PASSWORD: katha_secret
           POSTGRES_DB: katha_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        ports: ['6379:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
     env:
       DATABASE_URL: postgresql://katha:katha_secret@localhost:5432/katha_test?schema=public
       REDIS_HOST: localhost
       REDIS_PORT: 6379
-      JWT_SECRET: test-jwt-secret
+      JWT_SECRET: ci-test-jwt-secret
+      ENCRYPTION_SECRET: ci-test-32-char-secret-key!!!!!
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - run: npm ci
       - run: npm run db:generate
-      - run: npm run test
+      - run: npm run test -- --coverage
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/api/coverage/
+          retention-days: 7
+
+  # ─── Security Scanning ─────────────────────────────────
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - name: Audit dependencies
+        run: npm audit --audit-level=high || true
+      - name: Check for leaked secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  # ─── Build ─────────────────────────────────────────────
 
   build:
     name: Build
@@ -90,29 +119,49 @@ jobs:
     needs: [lint, typecheck, test]
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - run: npm ci
       - run: npm run build
 
+  # ─── Docker Images ─────────────────────────────────────
+
   docker:
-    name: Docker Build
+    name: Docker (${{ matrix.service }})
     runs-on: ubuntu-latest
-    needs: [build]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    needs: [build, security]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     strategy:
       matrix:
         service: [api, worker, admin]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          docker build \
-            -f apps/${{ matrix.service }}/Dockerfile \
-            -t katha-${{ matrix.service }}:${{ github.sha }} \
-            .
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
