@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  APPLE
+}
+
+enum StoryStatus {
+  DRAFT
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id                String       @id @default(cuid())
+  email             String       @unique
+  passwordHash      String?
+  name              String
+  avatarUrl         String?
+  role              UserRole     @default(USER)
+  authProvider      AuthProvider  @default(EMAIL)
+  authProviderId    String?
+  preferredLanguage String       @default("en")
+  isActive          Boolean      @default(true)
+  lastLoginAt       DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  stories           Story[]
+  avatars           Avatar[]
+  refreshTokens     RefreshToken[]
+
+  @@index([email])
+  @@index([authProvider, authProviderId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model Avatar {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  voiceId     String?
+  style       Json?
+  isPublic    Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stories     Story[]
+
+  @@index([userId])
+  @@map("avatars")
+}
+
+model Story {
+  id          String      @id @default(cuid())
+  title       String
+  prompt      String
+  content     String?     @db.Text
+  language    String      @default("en")
+  status      StoryStatus @default(DRAFT)
+  metadata    Json?
+  duration    Int?
+  audioUrl    String?
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarId    String?
+  avatar      Avatar?     @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([language])
+  @@map("stories")
+}

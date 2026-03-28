@@ -1,0 +1,45 @@
+{
+  "auth": {
+    "welcome": "कथा में आपका स्वागत है",
+    "subtitle": "AI अवतार के साथ कहानियाँ जीवंत होती हैं",
+    "continueWithEmail": "ईमेल से जारी रखें",
+    "continueWithGoogle": "Google से जारी रखें",
+    "continueWithApple": "Apple से जारी रखें",
+    "termsNotice": "जारी रखकर, आप हमारी सेवा की शर्तों और गोपनीयता नीति से सहमत हैं"
+  },
+  "home": {
+    "greeting": "नमस्ते! 🙏",
+    "whatStory": "आज कौन सी कहानी सुनाएं?",
+    "createStory": "नई कहानी बनाएं",
+    "recentStories": "हाल की कहानियाँ",
+    "noStories": "अभी कोई कहानी नहीं है। अपनी पहली कहानी बनाएं!"
+  },
+  "story": {
+    "title": "कहानी",
+    "create": "कहानी बनाएं",
+    "selectAvatar": "अवतार चुनें",
+    "selectLanguage": "कहानी की भाषा",
+    "prompt": "आपकी कहानी किस बारे में है?",
+    "generating": "आपकी कहानी बना रहे हैं...",
+    "share": "कहानी साझा करें"
+  },
+  "avatar": {
+    "title": "अवतार",
+    "myAvatars": "मेरे अवतार",
+    "explore": "अवतार खोजें"
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "language": "ऐप की भाषा",
+    "privacy": "गोपनीयता सेटिंग्स",
+    "logout": "लॉग आउट"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "कुछ गलत हो गया",
+    "retry": "पुनः प्रयास करें",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "delete": "हटाएं"
+  }
+}

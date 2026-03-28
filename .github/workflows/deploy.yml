@@ -1,0 +1,50 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Deploy API
+        run: |
+          echo "Deploying API to ${{ inputs.environment }}"
+          # TODO: Add actual deployment steps (ECS, Cloud Run, etc.)
+
+      - name: Deploy Worker
+        run: |
+          echo "Deploying Worker to ${{ inputs.environment }}"
+          # TODO: Add actual deployment steps
+
+      - name: Deploy Admin
+        run: |
+          echo "Deploying Admin to ${{ inputs.environment }}"
+          # TODO: Add actual deployment steps
+
+      - name: Run Migrations
+        if: inputs.environment != 'production'
+        run: |
+          echo "Running database migrations on ${{ inputs.environment }}"
+          # TODO: npm run db:migrate:prod

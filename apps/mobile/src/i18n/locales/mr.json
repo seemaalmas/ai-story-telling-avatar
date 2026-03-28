@@ -1,0 +1,25 @@
+{
+  "auth": {
+    "welcome": "कथामध्ये आपले स्वागत आहे",
+    "subtitle": "AI अवतारांसह कथा जिवंत होतात",
+    "continueWithEmail": "ईमेलने सुरू ठेवा",
+    "continueWithGoogle": "Google ने सुरू ठेवा",
+    "continueWithApple": "Apple ने सुरू ठेवा",
+    "termsNotice": "सुरू ठेवून, तुम्ही आमच्या सेवा अटी आणि गोपनीयता धोरणाशी सहमत आहात"
+  },
+  "home": {
+    "greeting": "नमस्कार! 🙏",
+    "whatStory": "आज कोणती कथा सांगायची?",
+    "createStory": "नवीन कथा तयार करा",
+    "recentStories": "अलीकडील कथा",
+    "noStories": "अजून कथा नाहीत. तुमची पहिली कथा तयार करा!"
+  },
+  "common": {
+    "loading": "लोड होत आहे...",
+    "error": "काहीतरी चूक झाली",
+    "retry": "पुन्हा प्रयत्न करा",
+    "cancel": "रद्द करा",
+    "save": "जतन करा",
+    "delete": "हटवा"
+  }
+}

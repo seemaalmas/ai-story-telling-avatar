@@ -1,0 +1,45 @@
+{
+  "auth": {
+    "welcome": "Welcome to Katha",
+    "subtitle": "Stories come alive with AI avatars",
+    "continueWithEmail": "Continue with Email",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "termsNotice": "By continuing, you agree to our Terms of Service and Privacy Policy"
+  },
+  "home": {
+    "greeting": "Namaste! 🙏",
+    "whatStory": "What story shall we tell today?",
+    "createStory": "Create a New Story",
+    "recentStories": "Recent Stories",
+    "noStories": "No stories yet. Create your first one!"
+  },
+  "story": {
+    "title": "Story",
+    "create": "Create Story",
+    "selectAvatar": "Choose an Avatar",
+    "selectLanguage": "Story Language",
+    "prompt": "What's your story about?",
+    "generating": "Creating your story...",
+    "share": "Share Story"
+  },
+  "avatar": {
+    "title": "Avatars",
+    "myAvatars": "My Avatars",
+    "explore": "Explore Avatars"
+  },
+  "profile": {
+    "title": "Profile",
+    "language": "App Language",
+    "privacy": "Privacy Settings",
+    "logout": "Log Out"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete"
+  }
+}
