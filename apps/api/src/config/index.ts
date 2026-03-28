@@ -59,3 +59,10 @@ export const voiceConfig = registerAs('voice', () => ({
   enableSelfVoiceEnrollment: process.env.ENABLE_SELF_VOICE_ENROLLMENT === 'true',
   abuseAutoSuspendThreshold: parseInt(process.env.ABUSE_AUTO_SUSPEND_THRESHOLD ?? '3', 10),
 }));
+
+export const subscriptionConfig = registerAs('subscription', () => ({
+  appleSharedSecret: process.env.APPLE_SHARED_SECRET,
+  googleServiceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
+  webhookSecret: process.env.SUBSCRIPTION_WEBHOOK_SECRET,
+  trialDays: parseInt(process.env.TRIAL_DAYS ?? '0', 10),
+}));

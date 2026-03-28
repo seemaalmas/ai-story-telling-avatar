@@ -56,6 +56,29 @@ enum AbuseReportStatus {
   DISMISSED
 }
 
+enum PlanId {
+  FREE
+  PREMIUM_MONTHLY
+  PREMIUM_YEARLY
+  FAMILY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+  PAUSED
+}
+
+enum StorePlatform {
+  APP_STORE
+  PLAY_STORE
+  WEB
+  MANUAL
+}
+
 model User {
   id                String       @id @default(cuid())
   email             String       @unique
@@ -82,6 +105,8 @@ model User {
   otpCodes          OtpCode[]
   voiceEnrollments  VoiceEnrollment[]
   abuseReports      AbuseReport[]     @relation("reporter")
+  subscriptions     Subscription[]
+  entitlementAudits EntitlementAudit[]
 
   @@index([email])
   @@index([authProvider, authProviderId])
@@ -315,4 +340,55 @@ model AbuseReport {
   @@index([targetType, targetId])
   @@index([status])
   @@map("abuse_reports")
+}
+
+// ─── Subscriptions & Entitlements ──────────────────────────
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId               PlanId             @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  platform             StorePlatform      @default(MANUAL)
+  /** Product ID from the app store */
+  storeProductId       String?
+  /** Original transaction ID from the store */
+  storeTransactionId   String?
+  /** Latest receipt data for re-validation */
+  latestReceipt        String?            @db.Text
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelledAt          DateTime?
+  /** Whether auto-renew is on */
+  autoRenew            Boolean            @default(true)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@unique([userId, planId, platform])
+  @@index([userId])
+  @@index([status])
+  @@index([storeTransactionId])
+  @@map("subscriptions")
+}
+
+model EntitlementAudit {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action         String
+  planId         String?
+  platform       String?
+  transactionId  String?
+  /** Snapshot of entitlements at the time of the event */
+  entitlements   Json?
+  /** Extra details (receipt excerpt, error, etc.) */
+  details        Json?
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("entitlement_audits")
 }

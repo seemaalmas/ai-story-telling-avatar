@@ -79,3 +79,51 @@ export const MODERATION_BLOCKED_CATEGORIES = [
   'self_harm',
   'dangerous_content',
 ] as const;
+
+// ─── Subscription & Entitlements ───────────────────────────
+
+export const PLAN_IDS = ['free', 'premium_monthly', 'premium_yearly', 'family'] as const;
+
+export const FREE_PLAN_LIMITS = {
+  storiesPerDay: 3,
+  languageCount: 3,
+  customVoice: false,
+  familySharing: false,
+  adsFree: false,
+} as const;
+
+export const PREMIUM_PLAN_LIMITS = {
+  storiesPerDay: -1, // unlimited
+  languageCount: 10,
+  customVoice: true,
+  familySharing: false,
+  adsFree: true,
+} as const;
+
+export const FAMILY_PLAN_LIMITS = {
+  ...PREMIUM_PLAN_LIMITS,
+  familySharing: true,
+  maxFamilyMembers: 5,
+} as const;
+
+export const PLAN_PRICES_INR = {
+  free: 0,
+  premium_monthly: 149,
+  premium_yearly: 999,
+  family: 249,
+} as const;
+
+export const STORE_PRODUCT_IDS = {
+  premium_monthly: {
+    appStore: 'com.katha.ai.premium.monthly',
+    playStore: 'premium_monthly',
+  },
+  premium_yearly: {
+    appStore: 'com.katha.ai.premium.yearly',
+    playStore: 'premium_yearly',
+  },
+  family: {
+    appStore: 'com.katha.ai.family.monthly',
+    playStore: 'family_monthly',
+  },
+} as const;

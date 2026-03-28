@@ -3,4 +3,5 @@ export * from './story';
 export * from './story-engine';
 export * from './avatar';
 export * from './voice';
+export * from './subscription';
 export * from './api';

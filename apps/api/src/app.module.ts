@@ -11,14 +11,15 @@ import { StoriesModule } from './modules/stories/stories.module';
 import { StoryEngineModule } from './modules/story-engine/story-engine.module';
 import { AvatarsModule } from './modules/avatars/avatars.module';
 import { VoicePipelineModule } from './modules/voice-pipeline/voice-pipeline.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { HealthModule } from './modules/health/health.module';
-import { appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig } from './config';
+import { appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig, subscriptionConfig } from './config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig],
+      load: [appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig, subscriptionConfig],
       envFilePath: ['.env.local', '.env'],
     }),
     ThrottlerModule.forRoot([
@@ -36,6 +37,7 @@ import { appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, 
     StoryEngineModule,
     AvatarsModule,
     VoicePipelineModule,
+    SubscriptionModule,
     HealthModule,
   ],
   providers: [
