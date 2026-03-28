@@ -33,6 +33,27 @@ enum ConsentType {
   DATA_PROCESSING
   ANALYTICS
   PUSH_NOTIFICATIONS
+  VOICE_ENROLLMENT
+  VOICE_BIOMETRIC_STORAGE
+  VOICE_SYNTHETIC_USE
+}
+
+enum VoiceEnrollmentStatus {
+  PENDING_CONSENT
+  CONSENT_GRANTED
+  SAMPLES_UPLOADING
+  PROCESSING
+  READY
+  FAILED
+  REVOKED
+}
+
+enum AbuseReportStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED_ACTION_TAKEN
+  RESOLVED_NO_ACTION
+  DISMISSED
 }
 
 model User {
@@ -59,6 +80,8 @@ model User {
   preferences       UserPreference[]
   consents          Consent[]
   otpCodes          OtpCode[]
+  voiceEnrollments  VoiceEnrollment[]
+  abuseReports      AbuseReport[]     @relation("reporter")
 
   @@index([email])
   @@index([authProvider, authProviderId])
@@ -240,4 +263,56 @@ model StorySession {
   @@index([storyId])
   @@index([sessionId])
   @@map("story_sessions")
+}
+
+// ─── Voice Pipeline ────────────────────────────────────────
+
+model VoiceEnrollment {
+  id              String                @id @default(cuid())
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voiceName       String
+  languageCode    String
+  status          VoiceEnrollmentStatus @default(PENDING_CONSENT)
+  /** Provider-side voice ID once processing is complete */
+  providerVoiceId String?
+  /** Number of samples uploaded */
+  sampleCount     Int                   @default(0)
+  /** Total duration of all samples in ms */
+  totalDurationMs Int                   @default(0)
+  /** Provider used for voice creation */
+  provider        String?
+  /** Reason if status is FAILED */
+  failureReason   String?
+  /** When the user granted voice enrollment consent */
+  consentGrantedAt DateTime?
+  /** When the user revoked their voice */
+  revokedAt       DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("voice_enrollments")
+}
+
+model AbuseReport {
+  id              String            @id @default(cuid())
+  reporterUserId  String
+  reporter        User              @relation("reporter", fields: [reporterUserId], references: [id], onDelete: Cascade)
+  targetType      String
+  targetId        String
+  category        String
+  description     String            @db.Text
+  status          AbuseReportStatus @default(OPEN)
+  /** Admin notes on resolution */
+  resolutionNotes String?           @db.Text
+  resolvedAt      DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([reporterUserId])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@map("abuse_reports")
 }

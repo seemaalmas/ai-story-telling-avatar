@@ -50,3 +50,12 @@ export const storyEngineConfig = registerAs('storyEngine', () => ({
   maxContextChars: parseInt(process.env.STORY_MAX_CONTEXT_CHARS ?? '8000', 10),
   windDownTurn: parseInt(process.env.STORY_WIND_DOWN_TURN ?? '15', 10),
 }));
+
+export const voiceConfig = registerAs('voice', () => ({
+  ttsProvider: process.env.TTS_PROVIDER ?? 'mock',
+  sttProvider: process.env.STT_PROVIDER ?? 'mock',
+  defaultVoiceId: process.env.DEFAULT_VOICE_ID ?? 'mock-dadi',
+  maxSynthesisChars: parseInt(process.env.MAX_SYNTHESIS_CHARS ?? '5000', 10),
+  enableSelfVoiceEnrollment: process.env.ENABLE_SELF_VOICE_ENROLLMENT === 'true',
+  abuseAutoSuspendThreshold: parseInt(process.env.ABUSE_AUTO_SUSPEND_THRESHOLD ?? '3', 10),
+}));

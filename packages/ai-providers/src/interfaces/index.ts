@@ -80,3 +80,6 @@ export interface AIProviderConfig {
   maxRetries?: number;
   timeoutMs?: number;
 }
+
+// Re-export voice interfaces
+export * from './voice';
