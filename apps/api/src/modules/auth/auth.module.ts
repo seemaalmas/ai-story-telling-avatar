@@ -4,7 +4,11 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { OtpService } from './services/otp.service';
+import { DeviceSessionService } from './services/device-session.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleAuthService } from './strategies/google.strategy';
+import { AppleAuthService } from './strategies/apple.strategy';
 
 @Module({
   imports: [
@@ -20,7 +24,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [
+    AuthService,
+    OtpService,
+    DeviceSessionService,
+    JwtStrategy,
+    GoogleAuthService,
+    AppleAuthService,
+  ],
+  exports: [AuthService, OtpService, DeviceSessionService],
 })
 export class AuthModule {}

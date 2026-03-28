@@ -28,3 +28,28 @@ export const AUTH_TOKEN_KEYS = {
   ACCESS_TOKEN: 'accessToken',
   REFRESH_TOKEN: 'refreshToken',
 } as const;
+
+export const OTP_DEFAULTS = {
+  length: 6,
+  expiryMinutes: 10,
+  maxAttempts: 5,
+} as const;
+
+export const CONSENT_TYPES = [
+  'TERMS_OF_SERVICE',
+  'PRIVACY_POLICY',
+  'MARKETING_EMAIL',
+  'DATA_PROCESSING',
+  'ANALYTICS',
+  'PUSH_NOTIFICATIONS',
+] as const;
+
+export const SENSITIVE_PREFERENCE_KEYS = [
+  'payment_info',
+  'phone_number',
+  'address',
+  'aadhaar_last4',
+  'pan_number',
+] as const;
+
+export const MAX_DEVICE_SESSIONS = 5;

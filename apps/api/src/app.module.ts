@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { PreferencesModule } from './modules/preferences/preferences.module';
+import { ConsentModule } from './modules/consent/consent.module';
 import { StoriesModule } from './modules/stories/stories.module';
 import { AvatarsModule } from './modules/avatars/avatars.module';
 import { HealthModule } from './modules/health/health.module';
@@ -25,9 +28,17 @@ import { appConfig, databaseConfig, authConfig, redisConfig } from './config';
     PrismaModule,
     AuthModule,
     UsersModule,
+    PreferencesModule,
+    ConsentModule,
     StoriesModule,
     AvatarsModule,
     HealthModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

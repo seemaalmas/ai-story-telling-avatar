@@ -23,4 +23,10 @@ export interface PaginatedResponse<T> {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  sessionId?: string;
+}
+
+export interface OtpRequestResponse {
+  message: string;
+  expiresAt: string;
 }

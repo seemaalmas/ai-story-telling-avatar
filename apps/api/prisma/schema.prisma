@@ -26,6 +26,15 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  MARKETING_EMAIL
+  DATA_PROCESSING
+  ANALYTICS
+  PUSH_NOTIFICATIONS
+}
+
 model User {
   id                String       @id @default(cuid())
   email             String       @unique
@@ -33,10 +42,11 @@ model User {
   name              String
   avatarUrl         String?
   role              UserRole     @default(USER)
-  authProvider      AuthProvider  @default(EMAIL)
+  authProvider      AuthProvider @default(EMAIL)
   authProviderId    String?
   preferredLanguage String       @default("en")
   isActive          Boolean      @default(true)
+  emailVerified     Boolean      @default(false)
   lastLoginAt       DateTime?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
@@ -44,23 +54,107 @@ model User {
   stories           Story[]
   avatars           Avatar[]
   refreshTokens     RefreshToken[]
+  deviceSessions    DeviceSession[]
+  preferences       UserPreference[]
+  consents          Consent[]
+  otpCodes          OtpCode[]
 
   @@index([email])
   @@index([authProvider, authProviderId])
   @@map("users")
 }
 
-model RefreshToken {
+model OtpCode {
   id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  email     String
+  purpose   String   @default("LOGIN") // LOGIN, VERIFY_EMAIL, RESET_PASSWORD
+  attempts  Int      @default(0)
+  maxAttempts Int    @default(5)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
+  usedAt    DateTime?
   createdAt DateTime @default(now())
+
+  @@index([email, purpose])
+  @@index([code, email])
+  @@map("otp_codes")
+}
+
+model RefreshToken {
+  id              String        @id @default(cuid())
+  token           String        @unique
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceSessionId String?
+  deviceSession   DeviceSession? @relation(fields: [deviceSessionId], references: [id], onDelete: SetNull)
+  expiresAt       DateTime
+  createdAt       DateTime      @default(now())
 
   @@index([userId])
   @@index([token])
+  @@index([deviceSessionId])
   @@map("refresh_tokens")
+}
+
+model DeviceSession {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId      String
+  deviceName    String?
+  deviceOS      String?
+  deviceOSVersion String?
+  appVersion    String?
+  pushToken     String?
+  ipAddress     String?
+  isActive      Boolean  @default(true)
+  lastActiveAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@index([deviceId])
+  @@map("device_sessions")
+}
+
+model UserPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String
+  value     String   @db.Text
+  encrypted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
+  @@index([userId])
+  @@map("user_preferences")
+}
+
+model Consent {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        ConsentType
+  granted     Boolean
+  version     String      @default("1.0")
+  ipAddress   String?
+  userAgent   String?
+  grantedAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([userId, type, version])
+  @@index([userId])
+  @@index([type])
+  @@map("consents")
 }
 
 model Avatar {

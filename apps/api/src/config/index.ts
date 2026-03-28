@@ -4,6 +4,7 @@ export const appConfig = registerAs('app', () => ({
   name: process.env.APP_NAME ?? 'katha-ai',
   port: parseInt(process.env.APP_PORT ?? '3000', 10),
   env: process.env.NODE_ENV ?? 'development',
+  encryptionSecret: process.env.ENCRYPTION_SECRET ?? 'change-me-32-char-secret-key!!!',
 }));
 
 export const databaseConfig = registerAs('database', () => ({
@@ -12,8 +13,15 @@ export const databaseConfig = registerAs('database', () => ({
 
 export const authConfig = registerAs('auth', () => ({
   jwtSecret: process.env.JWT_SECRET ?? 'change-me-in-production',
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '15m',
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '30d',
+  otp: {
+    length: parseInt(process.env.OTP_LENGTH ?? '6', 10),
+    expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES ?? '10', 10),
+    maxAttempts: parseInt(process.env.OTP_MAX_ATTEMPTS ?? '5', 10),
+    rateLimitTtl: parseInt(process.env.OTP_RATE_LIMIT_TTL ?? '60000', 10),
+    rateLimitMax: parseInt(process.env.OTP_RATE_LIMIT_MAX ?? '3', 10),
+  },
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -25,6 +33,7 @@ export const authConfig = registerAs('auth', () => ({
     keyId: process.env.APPLE_KEY_ID,
     privateKey: process.env.APPLE_PRIVATE_KEY,
   },
+  maxDeviceSessions: parseInt(process.env.MAX_DEVICE_SESSIONS ?? '5', 10),
 }));
 
 export const redisConfig = registerAs('redis', () => ({
