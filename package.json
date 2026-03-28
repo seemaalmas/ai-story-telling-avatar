@@ -21,6 +21,8 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "setup": "bash scripts/setup.sh",
+    "verify:env": "bash scripts/verify-env.sh",
     "db:generate": "npm run --workspace=apps/api db:generate",
     "db:migrate": "npm run --workspace=apps/api db:migrate",
     "db:seed": "npm run --workspace=apps/api db:seed",
