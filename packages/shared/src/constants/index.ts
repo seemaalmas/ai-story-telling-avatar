@@ -53,3 +53,29 @@ export const SENSITIVE_PREFERENCE_KEYS = [
 ] as const;
 
 export const MAX_DEVICE_SESSIONS = 5;
+
+// ─── Story Engine ──────────────────────────────────────────
+
+export const STORY_MODES = ['bedtime', 'warrior_success', 'mythology', 'motivation'] as const;
+export const STORY_TONES = ['calm', 'funny', 'energetic'] as const;
+
+export const STORY_ENGINE_DEFAULTS = {
+  /** Maximum turns before the engine forces an ending */
+  maxTurns: 20,
+  /** Maximum choices per node */
+  maxChoices: 3,
+  /** Redis session TTL in seconds (2 hours) */
+  sessionTtlSeconds: 7200,
+  /** Maximum context window characters kept for the LLM */
+  maxContextChars: 8000,
+  /** Turn at which to hint the LLM towards wrapping up */
+  windDownTurn: 15,
+} as const;
+
+export const MODERATION_BLOCKED_CATEGORIES = [
+  'violence_graphic',
+  'sexual',
+  'hate_speech',
+  'self_harm',
+  'dangerous_content',
+] as const;

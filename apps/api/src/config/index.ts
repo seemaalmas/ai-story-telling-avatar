@@ -5,6 +5,7 @@ export const appConfig = registerAs('app', () => ({
   port: parseInt(process.env.APP_PORT ?? '3000', 10),
   env: process.env.NODE_ENV ?? 'development',
   encryptionSecret: process.env.ENCRYPTION_SECRET ?? 'change-me-32-char-secret-key!!!',
+  aiProvider: process.env.AI_PROVIDER ?? 'mock',
 }));
 
 export const databaseConfig = registerAs('database', () => ({
@@ -40,4 +41,12 @@ export const redisConfig = registerAs('redis', () => ({
   host: process.env.REDIS_HOST ?? 'localhost',
   port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
   password: process.env.REDIS_PASSWORD ?? undefined,
+}));
+
+export const storyEngineConfig = registerAs('storyEngine', () => ({
+  maxTurns: parseInt(process.env.STORY_MAX_TURNS ?? '20', 10),
+  maxChoices: parseInt(process.env.STORY_MAX_CHOICES ?? '3', 10),
+  sessionTtlSeconds: parseInt(process.env.STORY_SESSION_TTL ?? '7200', 10),
+  maxContextChars: parseInt(process.env.STORY_MAX_CONTEXT_CHARS ?? '8000', 10),
+  windDownTurn: parseInt(process.env.STORY_WIND_DOWN_TURN ?? '15', 10),
 }));

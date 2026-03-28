@@ -52,6 +52,7 @@ model User {
   updatedAt         DateTime     @updatedAt
 
   stories           Story[]
+  storySessions     StorySession[]
   avatars           Avatar[]
   refreshTokens     RefreshToken[]
   deviceSessions    DeviceSession[]
@@ -193,8 +194,50 @@ model Story {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
+  storySessions StorySession[]
+
   @@index([userId])
   @@index([status])
   @@index([language])
   @@map("stories")
+}
+
+// ─── Story Engine ──────────────────────────────────────────
+
+enum StoryMode {
+  BEDTIME
+  WARRIOR_SUCCESS
+  MYTHOLOGY
+  MOTIVATION
+}
+
+enum StoryTone {
+  CALM
+  FUNNY
+  ENERGETIC
+}
+
+model StorySession {
+  id            String     @id @default(cuid())
+  sessionId     String     @unique
+  storyId       String
+  story         Story      @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode          StoryMode
+  tone          StoryTone
+  language      String     @default("en")
+  totalTurns    Int        @default(0)
+  path          Json       @default("[]")
+  summary       String?    @db.Text
+  nodes         Json?
+  startedAt     DateTime   @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([storyId])
+  @@index([sessionId])
+  @@map("story_sessions")
 }
