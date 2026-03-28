@@ -3,16 +3,42 @@
     "welcome": "Welcome to Katha",
     "subtitle": "Stories come alive with AI avatars",
     "continueWithEmail": "Continue with Email",
+    "continueWithOtp": "Continue with OTP",
     "continueWithGoogle": "Continue with Google",
     "continueWithApple": "Continue with Apple",
-    "termsNotice": "By continuing, you agree to our Terms of Service and Privacy Policy"
+    "termsNotice": "By continuing, you agree to our Terms of Service and Privacy Policy",
+    "enterOtp": "Enter OTP",
+    "otpSentTo": "We sent a 6-digit code to",
+    "verify": "Verify",
+    "resendOtp": "Resend OTP",
+    "changeEmail": "Change email"
+  },
+  "onboarding": {
+    "storiesAlive": "Stories Come Alive",
+    "storiesAliveBody": "AI-powered avatars narrate personalised stories in your language.",
+    "madeForIndia": "Made for India",
+    "madeForIndiaBody": "Hindi, Tamil, Telugu, Bengali, Marathi, Kannada and more.",
+    "safeForAll": "Safe for Everyone",
+    "safeForAllBody": "Family-safe by default. Every story is moderated. Your data stays private.",
+    "next": "Next",
+    "skip": "Skip",
+    "getStarted": "Get Started"
   },
   "home": {
-    "greeting": "Namaste! 🙏",
+    "greeting": "Namaste!",
     "whatStory": "What story shall we tell today?",
     "createStory": "Create a New Story",
     "recentStories": "Recent Stories",
-    "noStories": "No stories yet. Create your first one!"
+    "noStories": "No stories yet",
+    "noStoriesMessage": "Start your first story and it will appear here.",
+    "storyModes": "Story Modes",
+    "narrators": "Narrators",
+    "seeAll": "See all"
+  },
+  "explore": {
+    "title": "Explore Stories",
+    "language": "Language",
+    "popularTemplates": "Popular Story Templates"
   },
   "story": {
     "title": "Story",
@@ -21,18 +47,92 @@
     "selectLanguage": "Story Language",
     "prompt": "What's your story about?",
     "generating": "Creating your story...",
-    "share": "Share Story"
+    "share": "Share Story",
+    "chooseMode": "Choose a Story Mode",
+    "chooseModeBody": "What kind of story are you in the mood for?",
+    "setTone": "Set the Tone",
+    "setToneBody": "How should the story feel?",
+    "yourPrompt": "Your Story Prompt",
+    "promptHint": "Optional — describe what the story should be about, or leave blank for a surprise!",
+    "startStory": "Start Story",
+    "nextTone": "Next: Choose Tone",
+    "nextPrompt": "Next: Story Prompt",
+    "turn": "Turn",
+    "theEnd": "The End",
+    "backToHome": "Back to Home",
+    "endStory": "End"
+  },
+  "modes": {
+    "bedtime": "Bedtime",
+    "bedtimeDesc": "Gentle, soothing stories",
+    "warrior_success": "Warrior & Success",
+    "warrior_successDesc": "Courage, grit, triumph",
+    "mythology": "Mythology",
+    "mythologyDesc": "Epics, folklore, dharma",
+    "motivation": "Motivation",
+    "motivationDesc": "Inspiring real-world tales"
+  },
+  "tones": {
+    "calm": "Calm",
+    "calmDesc": "Peaceful and measured",
+    "funny": "Funny",
+    "funnyDesc": "Light-hearted and playful",
+    "energetic": "Energetic",
+    "energeticDesc": "Fast-paced and exciting"
   },
   "avatar": {
     "title": "Avatars",
     "myAvatars": "My Avatars",
-    "explore": "Explore Avatars"
+    "explore": "Explore Avatars",
+    "chooseNarrator": "Choose a Narrator"
   },
   "profile": {
     "title": "Profile",
-    "language": "App Language",
-    "privacy": "Privacy Settings",
-    "logout": "Log Out"
+    "settings": "Settings",
+    "language": "Language",
+    "familySafe": "Family Safe Mode",
+    "notifications": "Notifications",
+    "voiceSettings": "Voice Settings",
+    "support": "Support",
+    "reportProblem": "Report a Problem",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "account": "Account",
+    "logout": "Log Out",
+    "logoutConfirm": "Are you sure you want to log out?",
+    "deleteAccount": "Delete Account",
+    "deleteConfirm": "This will permanently delete your account and all data. This cannot be undone.",
+    "upgradePremium": "Upgrade to Premium"
+  },
+  "paywall": {
+    "title": "Unlock the Full Katha Experience",
+    "badge": "PREMIUM",
+    "unlimited": "Unlimited stories per day",
+    "customVoice": "Custom voice narration",
+    "allLanguages": "All 10 Indian languages",
+    "premiumTemplates": "Premium story templates",
+    "familySharing": "Family sharing (up to 5)",
+    "noAds": "No ads, ever",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "subscribe": "Subscribe",
+    "restore": "Restore Purchases",
+    "save": "Save 44%"
+  },
+  "report": {
+    "title": "Report a Problem",
+    "subtitle": "Help us keep Katha safe. All reports are reviewed by our trust & safety team.",
+    "whatHappened": "What happened?",
+    "tellMore": "Tell us more",
+    "submit": "Submit Report",
+    "submitted": "Report Submitted",
+    "submittedBody": "Thank you. Our team will review this within 48 hours.",
+    "impersonation": "Impersonation",
+    "harassment": "Harassment",
+    "deepfake": "Deepfake",
+    "unauthorizedVoice": "Unauthorized Voice",
+    "hateSpeech": "Hate Speech",
+    "other": "Other"
   },
   "common": {
     "loading": "Loading...",
@@ -40,6 +140,11 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "save": "Save",
-    "delete": "Delete"
+    "delete": "Delete",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "or": "or"
   }
 }

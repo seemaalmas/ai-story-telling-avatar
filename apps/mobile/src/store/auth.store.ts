@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import * as SecureStore from 'expo-secure-store';
 
 interface User {
   id: string;
@@ -6,6 +7,8 @@ interface User {
   name: string;
   avatarUrl?: string;
   preferredLanguage: string;
+  role: string;
+  emailVerified: boolean;
 }
 
 interface AuthState {
@@ -14,12 +17,13 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  loginWithApple: () => Promise<void>;
-  logout: () => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  hasCompletedOnboarding: boolean;
+
   setUser: (user: User) => void;
+  setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
+  setOnboardingComplete: () => Promise<void>;
+  logout: () => Promise<void>;
+  hydrate: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -27,28 +31,25 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   refreshToken: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
+  hasCompletedOnboarding: false,
 
-  login: async (_email: string, _password: string) => {
-    set({ isLoading: true });
-    try {
-      // TODO: Implement API call
-      set({ isLoading: false });
-    } catch {
-      set({ isLoading: false });
-      throw new Error('Login failed');
-    }
+  setUser: (user) => set({ user }),
+
+  setTokens: async (accessToken, refreshToken) => {
+    await SecureStore.setItemAsync('accessToken', accessToken);
+    await SecureStore.setItemAsync('refreshToken', refreshToken);
+    set({ accessToken, refreshToken, isAuthenticated: true });
   },
 
-  loginWithGoogle: async () => {
-    // TODO: Implement Google OAuth flow
+  setOnboardingComplete: async () => {
+    await SecureStore.setItemAsync('onboardingComplete', 'true');
+    set({ hasCompletedOnboarding: true });
   },
 
-  loginWithApple: async () => {
-    // TODO: Implement Apple Sign-In flow
-  },
-
-  logout: () => {
+  logout: async () => {
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
     set({
       user: null,
       accessToken: null,
@@ -57,11 +58,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  setTokens: (accessToken: string, refreshToken: string) => {
-    set({ accessToken, refreshToken, isAuthenticated: true });
-  },
-
-  setUser: (user: User) => {
-    set({ user });
+  hydrate: async () => {
+    try {
+      const accessToken = await SecureStore.getItemAsync('accessToken');
+      const refreshToken = await SecureStore.getItemAsync('refreshToken');
+      const onboarding = await SecureStore.getItemAsync('onboardingComplete');
+      set({
+        accessToken,
+        refreshToken,
+        isAuthenticated: !!accessToken,
+        hasCompletedOnboarding: onboarding === 'true',
+        isLoading: false,
+      });
+    } catch {
+      set({ isLoading: false });
+    }
   },
 }));
