@@ -21,7 +21,7 @@ import { appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, 
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig, subscriptionConfig],
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '.env.development'],
     }),
     ThrottlerModule.forRoot([
       {
