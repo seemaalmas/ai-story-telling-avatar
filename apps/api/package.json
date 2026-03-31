@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nest start --watch",
+    "dev": "ts-node -r tsconfig-paths/register src/main.ts",
+    "dev:watch": "nest start --watch",
     "build": "nest build",
     "start": "node dist/main",
     "start:prod": "node dist/main",
@@ -59,6 +60,7 @@
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.5.0",
     "ts-node": "^10.9.0",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.0"
   },
   "jest": {
