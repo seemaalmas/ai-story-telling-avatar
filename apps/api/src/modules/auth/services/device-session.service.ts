@@ -57,7 +57,7 @@ export class DeviceSessionService {
 
     if (activeSessions.length > maxSessions) {
       const sessionsToDeactivate = activeSessions.slice(maxSessions);
-      const idsToDeactivate = sessionsToDeactivate.map((s) => s.id);
+      const idsToDeactivate = sessionsToDeactivate.map((s: { id: string }) => s.id);
 
       await this.prisma.deviceSession.updateMany({
         where: { id: { in: idsToDeactivate } },
@@ -116,7 +116,7 @@ export class DeviceSessionService {
       where.id = { not: exceptSessionId };
     }
 
-    const sessions = await this.prisma.deviceSession.findMany({ where, select: { id: true } });
+    const sessions: Array<{ id: string }> = await this.prisma.deviceSession.findMany({ where, select: { id: true } });
     const sessionIds = sessions.map((s) => s.id);
 
     await this.prisma.deviceSession.updateMany({

@@ -211,7 +211,7 @@ export class VoiceEnrollmentService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
-    return enrollments.map((e) => this.toResponse(e));
+    return enrollments.map((e: Parameters<typeof this.toResponse>[0]) => this.toResponse(e));
   }
 
   async getEnrollment(userId: string, enrollmentId: string) {

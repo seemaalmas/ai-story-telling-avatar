@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { api } from '@/services/api';
 import { ScreenShell, PrimaryButton, SecondaryButton, TextInput, GhostButton } from '@/components';
 import { theme } from '@/theme';
 
@@ -9,13 +10,19 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
-  const handleOtp = () => {
+  const handleOtp = async () => {
     if (!email.includes('@')) {
       setError('Please enter a valid email');
       return;
     }
     setError('');
-    router.push({ pathname: '/auth/otp', params: { email } });
+    try {
+      await api.post('/auth/otp/request', { email });
+      router.push({ pathname: '/auth/otp', params: { email } });
+    } catch {
+      // Still navigate — OTP might have been sent even if response was slow
+      router.push({ pathname: '/auth/otp', params: { email } });
+    }
   };
 
   return (

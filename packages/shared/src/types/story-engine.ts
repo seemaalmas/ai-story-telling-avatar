@@ -6,7 +6,7 @@
 
 export type StoryMode = 'bedtime' | 'warrior_success' | 'mythology' | 'motivation';
 export type StoryTone = 'calm' | 'funny' | 'energetic';
-export type StoryStatus = 'DRAFT' | 'GENERATING' | 'COMPLETED' | 'FAILED';
+// StoryStatus is exported from ./story.ts — do not re-export here
 
 export type ModerationVerdict = 'pass' | 'flag' | 'block';
 

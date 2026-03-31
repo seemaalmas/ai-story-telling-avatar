@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { api } from '@/services/api';
 import { ScreenShell, PrimaryButton, GhostButton, TextInput, OptionCard } from '@/components';
 import { theme } from '@/theme';
 
@@ -26,7 +27,12 @@ export default function ReportAbuseScreen() {
     }
     setLoading(true);
     try {
-      // TODO: call api.post('/voice/abuse/report', { targetType: 'voice_output', targetId: '...', category, description })
+      await api.post('/voice/abuse/report', {
+        targetType: 'voice_output',
+        targetId: 'app-report',
+        category,
+        description,
+      });
       Alert.alert('Report Submitted', 'Thank you. Our team will review this within 48 hours.', [
         { text: 'OK', onPress: () => router.back() },
       ]);

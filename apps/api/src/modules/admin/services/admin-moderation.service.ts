@@ -93,7 +93,7 @@ export class AdminModerationService {
     return {
       totalStories,
       totalSessions,
-      byStatus: Object.fromEntries(statusCounts.map((s) => [s.status, s._count])),
+      byStatus: Object.fromEntries(statusCounts.map((s: { status: string; _count: number }) => [s.status, s._count])),
     };
   }
 
@@ -108,7 +108,7 @@ export class AdminModerationService {
     const LANGS = ['en', 'hi', 'ta', 'te', 'bn', 'mr', 'kn', 'gu', 'ml', 'pa'];
     return LANGS.map((code) => ({
       code,
-      enabled: flags.find((f) => f.key === `lang_${code}_enabled`)?.enabled ?? true,
+      enabled: flags.find((f: { key: string; enabled: boolean }) => f.key === `lang_${code}_enabled`)?.enabled ?? true,
     }));
   }
 

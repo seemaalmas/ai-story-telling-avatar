@@ -23,7 +23,7 @@ import {
   DeviceInfoDto,
 } from './dto';
 
-interface AuthTokens {
+export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
   sessionId?: string;

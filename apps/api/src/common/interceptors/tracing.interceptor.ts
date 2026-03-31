@@ -39,7 +39,7 @@ export class TracingInterceptor implements NestInterceptor {
     const startMs = Date.now();
 
     // Attach trace ID to request and response
-    (req as Record<string, unknown>).traceId = traceId;
+    (req as unknown as Record<string, unknown>).traceId = traceId;
     res.setHeader('x-trace-id', traceId);
 
     return next.handle().pipe(

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput as RNTextInput, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '@/store/auth.store';
+import { api } from '@/services/api';
 import { ScreenShell, PrimaryButton, GhostButton, ErrorBox } from '@/components';
 import { theme } from '@/theme';
 
@@ -42,20 +43,21 @@ export default function OtpScreen() {
     setLoading(true);
     setError('');
     try {
-      // TODO: call api.post('/auth/otp/verify', { email, code })
-      // Mock success for now
-      await setTokens('mock-access-token', 'mock-refresh-token');
-      setUser({
-        id: 'mock-user',
-        email: email ?? 'user@example.com',
-        name: 'Katha User',
-        preferredLanguage: 'en',
-        role: 'USER',
-        emailVerified: true,
+      const { data } = await api.post('/auth/otp/verify', {
+        email,
+        code,
+        name: 'Katha User', // Required for first-time OTP users
       });
+      await setTokens(data.accessToken, data.refreshToken);
+
+      // Fetch user profile with the new token
+      const profileRes = await api.get('/users/me');
+      await setUser(profileRes.data);
+
       router.replace('/(tabs)/home');
-    } catch {
-      setError('Invalid OTP. Please try again.');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg ?? 'Invalid OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ export default function OtpScreen() {
       {error ? <ErrorBox message={error} /> : null}
 
       <PrimaryButton title="Verify" onPress={handleVerify} loading={loading} accessibilityLabel="Verify OTP" />
-      <GhostButton title="Resend OTP" onPress={() => {}} accessibilityLabel="Request new OTP" />
+      <GhostButton title="Resend OTP" onPress={() => { api.post('/auth/otp/request', { email }).catch(() => {}); }} accessibilityLabel="Request new OTP" />
       <GhostButton title="Change email" onPress={() => router.back()} />
     </ScreenShell>
   );

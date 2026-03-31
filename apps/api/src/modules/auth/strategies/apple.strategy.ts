@@ -29,8 +29,8 @@ export class AppleAuthService {
   constructor(private readonly config: ConfigService) {}
 
   async verifyIdentityToken(
-    identityToken: string,
-    userInfo?: { firstName?: string; lastName?: string },
+    _identityToken: string,
+    _userInfo?: { firstName?: string; lastName?: string },
   ): Promise<AppleProfile> {
     const clientId = this.config.get<string>('auth.apple.clientId');
 

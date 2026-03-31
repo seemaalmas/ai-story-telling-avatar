@@ -49,7 +49,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   fetchEntitlements: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.get('/api/v1/subscription/entitlements');
+      const { data } = await api.get('/subscription/entitlements');
       set({ entitlements: data, isLoading: false });
     } catch {
       set({ isLoading: false });
@@ -60,7 +60,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   purchase: async (platform, receipt, productId) => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.post('/api/v1/subscription/purchase', {
+      const { data } = await api.post('/subscription/purchase', {
         platform,
         receipt,
         productId,
@@ -77,7 +77,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   restore: async (platform, receipts) => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.post('/api/v1/subscription/restore', {
+      const { data } = await api.post('/subscription/restore', {
         platform,
         receipts,
       });
@@ -91,7 +91,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
 
   cancel: async (subscriptionId) => {
     try {
-      await api.post('/api/v1/subscription/cancel', { subscriptionId });
+      await api.post('/subscription/cancel', { subscriptionId });
       await get().fetchEntitlements();
     } catch {
       set({ error: 'Cancellation failed' });

@@ -106,7 +106,7 @@ export class AbuseReportService {
         createdAt: true,
       },
     });
-    return reports.map((r) => ({
+    return reports.map((r: { id: string; targetType: string; targetId: string; category: string; status: string; createdAt: Date }) => ({
       ...r,
       status: r.status.toLowerCase(),
       createdAt: r.createdAt.toISOString(),
@@ -176,7 +176,7 @@ export class AbuseReportService {
           },
           select: { id: true },
         })
-      ).map((r) => r.id);
+      ).map((r: { id: string }) => r.id);
 
       for (const hook of this.hooks) {
         try {

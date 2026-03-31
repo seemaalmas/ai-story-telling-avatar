@@ -7,7 +7,7 @@ import { Request, Response, NextFunction } from 'express';
  */
 @Injectable()
 export class SecurityHeadersMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
+  use(_req: Request, res: Response, next: NextFunction) {
     // Prevent caching of API responses with auth data
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.setHeader('Pragma', 'no-cache');

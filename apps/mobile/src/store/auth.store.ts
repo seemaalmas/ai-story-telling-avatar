@@ -19,7 +19,7 @@ interface AuthState {
   isLoading: boolean;
   hasCompletedOnboarding: boolean;
 
-  setUser: (user: User) => void;
+  setUser: (user: User) => Promise<void>;
   setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
   setOnboardingComplete: () => Promise<void>;
   logout: () => Promise<void>;
@@ -34,7 +34,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   hasCompletedOnboarding: false,
 
-  setUser: (user) => set({ user }),
+  setUser: async (user) => {
+    await SecureStore.setItemAsync('user', JSON.stringify(user));
+    set({ user });
+  },
 
   setTokens: async (accessToken, refreshToken) => {
     await SecureStore.setItemAsync('accessToken', accessToken);
@@ -50,6 +53,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await SecureStore.deleteItemAsync('accessToken');
     await SecureStore.deleteItemAsync('refreshToken');
+    await SecureStore.deleteItemAsync('user');
     set({
       user: null,
       accessToken: null,
@@ -63,9 +67,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       const accessToken = await SecureStore.getItemAsync('accessToken');
       const refreshToken = await SecureStore.getItemAsync('refreshToken');
       const onboarding = await SecureStore.getItemAsync('onboardingComplete');
+      const userJson = await SecureStore.getItemAsync('user');
+
+      let user: User | null = null;
+      if (userJson) {
+        try { user = JSON.parse(userJson); } catch { /* corrupted, ignore */ }
+      }
+
       set({
         accessToken,
         refreshToken,
+        user,
         isAuthenticated: !!accessToken,
         hasCompletedOnboarding: onboarding === 'true',
         isLoading: false,

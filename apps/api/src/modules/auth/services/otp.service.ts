@@ -2,7 +2,8 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
-  TooManyRequestsException,
+  HttpException,
+  HttpStatus,
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -32,8 +33,9 @@ export class OtpService {
     });
 
     if (recentCount >= otpConfig.rateLimitMax) {
-      throw new TooManyRequestsException(
+      throw new HttpException(
         'Too many OTP requests. Please wait before trying again.',
+        HttpStatus.TOO_MANY_REQUESTS,
       );
     }
 
