@@ -10,6 +10,35 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+// ── Device Info (must be defined first — referenced by other DTOs) ──
+
+export class DeviceInfoDto {
+  @ApiProperty({ example: 'device-uuid-here' })
+  @IsString()
+  @IsNotEmpty()
+  deviceId: string;
+
+  @ApiPropertyOptional({ example: 'iPhone 15 Pro' })
+  @IsOptional()
+  @IsString()
+  deviceName?: string;
+
+  @ApiPropertyOptional({ example: 'iOS' })
+  @IsOptional()
+  @IsString()
+  deviceOS?: string;
+
+  @ApiPropertyOptional({ example: '17.4' })
+  @IsOptional()
+  @IsString()
+  deviceOSVersion?: string;
+
+  @ApiPropertyOptional({ example: '0.1.0' })
+  @IsOptional()
+  @IsString()
+  appVersion?: string;
+}
+
 // ── Registration ────────────────────────────────────────────
 
 export class RegisterDto {
@@ -151,35 +180,6 @@ export class LogoutDto {
   @ApiPropertyOptional({ description: 'If true, log out all devices' })
   @IsOptional()
   allDevices?: boolean;
-}
-
-// ── Device Info ─────────────────────────────────────────────
-
-export class DeviceInfoDto {
-  @ApiProperty({ example: 'device-uuid-here' })
-  @IsString()
-  @IsNotEmpty()
-  deviceId: string;
-
-  @ApiPropertyOptional({ example: 'iPhone 15 Pro' })
-  @IsOptional()
-  @IsString()
-  deviceName?: string;
-
-  @ApiPropertyOptional({ example: 'iOS' })
-  @IsOptional()
-  @IsString()
-  deviceOS?: string;
-
-  @ApiPropertyOptional({ example: '17.4' })
-  @IsOptional()
-  @IsString()
-  deviceOSVersion?: string;
-
-  @ApiPropertyOptional({ example: '0.1.0' })
-  @IsOptional()
-  @IsString()
-  appVersion?: string;
 }
 
 // ── Session Management ──────────────────────────────────────
