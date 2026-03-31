@@ -114,17 +114,17 @@ model User {
 }
 
 model OtpCode {
-  id        String   @id @default(cuid())
-  code      String
-  email     String
-  purpose   String   @default("LOGIN") // LOGIN, VERIFY_EMAIL, RESET_PASSWORD
-  attempts  Int      @default(0)
-  maxAttempts Int    @default(5)
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  code        String
+  email       String
+  purpose     String   @default("LOGIN") // LOGIN, VERIFY_EMAIL, RESET_PASSWORD
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(5)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
 
   @@index([email, purpose])
   @@index([code, email])
@@ -132,14 +132,14 @@ model OtpCode {
 }
 
 model RefreshToken {
-  id              String        @id @default(cuid())
-  token           String        @unique
+  id              String         @id @default(cuid())
+  token           String         @unique
   userId          String
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   deviceSessionId String?
   deviceSession   DeviceSession? @relation(fields: [deviceSessionId], references: [id], onDelete: SetNull)
   expiresAt       DateTime
-  createdAt       DateTime      @default(now())
+  createdAt       DateTime       @default(now())
 
   @@index([userId])
   @@index([token])
@@ -148,20 +148,20 @@ model RefreshToken {
 }
 
 model DeviceSession {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deviceId      String
-  deviceName    String?
-  deviceOS      String?
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId        String
+  deviceName      String?
+  deviceOS        String?
   deviceOSVersion String?
-  appVersion    String?
-  pushToken     String?
-  ipAddress     String?
-  isActive      Boolean  @default(true)
-  lastActiveAt  DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  appVersion      String?
+  pushToken       String?
+  ipAddress       String?
+  isActive        Boolean  @default(true)
+  lastActiveAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   refreshTokens RefreshToken[]
 
@@ -187,18 +187,18 @@ model UserPreference {
 }
 
 model Consent {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        ConsentType
-  granted     Boolean
-  version     String      @default("1.0")
-  ipAddress   String?
-  userAgent   String?
-  grantedAt   DateTime?
-  revokedAt   DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ConsentType
+  granted   Boolean
+  version   String      @default("1.0")
+  ipAddress String?
+  userAgent String?
+  grantedAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@unique([userId, type, version])
   @@index([userId])
@@ -219,28 +219,28 @@ model Avatar {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  stories     Story[]
+  stories Story[]
 
   @@index([userId])
   @@map("avatars")
 }
 
 model Story {
-  id          String      @id @default(cuid())
-  title       String
-  prompt      String
-  content     String?     @db.Text
-  language    String      @default("en")
-  status      StoryStatus @default(DRAFT)
-  metadata    Json?
-  duration    Int?
-  audioUrl    String?
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  avatarId    String?
-  avatar      Avatar?     @relation(fields: [avatarId], references: [id], onDelete: SetNull)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String      @id @default(cuid())
+  title     String
+  prompt    String
+  content   String?     @db.Text
+  language  String      @default("en")
+  status    StoryStatus @default(DRAFT)
+  metadata  Json?
+  duration  Int?
+  audioUrl  String?
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarId  String?
+  avatar    Avatar?     @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   storySessions StorySession[]
 
@@ -266,23 +266,23 @@ enum StoryTone {
 }
 
 model StorySession {
-  id            String     @id @default(cuid())
-  sessionId     String     @unique
-  storyId       String
-  story         Story      @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mode          StoryMode
-  tone          StoryTone
-  language      String     @default("en")
-  totalTurns    Int        @default(0)
-  path          Json       @default("[]")
-  summary       String?    @db.Text
-  nodes         Json?
-  startedAt     DateTime   @default(now())
-  completedAt   DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id          String     @id @default(cuid())
+  sessionId   String     @unique
+  storyId     String
+  story       Story      @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode        StoryMode
+  tone        StoryTone
+  language    String     @default("en")
+  totalTurns  Int        @default(0)
+  path        Json       @default("[]")
+  summary     String?    @db.Text
+  nodes       Json?
+  startedAt   DateTime   @default(now())
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@index([userId])
   @@index([storyId])
@@ -293,28 +293,21 @@ model StorySession {
 // ─── Voice Pipeline ────────────────────────────────────────
 
 model VoiceEnrollment {
-  id              String                @id @default(cuid())
-  userId          String
-  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  voiceName       String
-  languageCode    String
-  status          VoiceEnrollmentStatus @default(PENDING_CONSENT)
-  /** Provider-side voice ID once processing is complete */
-  providerVoiceId String?
-  /** Number of samples uploaded */
-  sampleCount     Int                   @default(0)
-  /** Total duration of all samples in ms */
-  totalDurationMs Int                   @default(0)
-  /** Provider used for voice creation */
-  provider        String?
-  /** Reason if status is FAILED */
-  failureReason   String?
-  /** When the user granted voice enrollment consent */
+  id               String                @id @default(cuid())
+  userId           String
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voiceName        String
+  languageCode     String
+  status           VoiceEnrollmentStatus @default(PENDING_CONSENT)
+  providerVoiceId  String?               // Provider-side voice ID once processing is complete
+  sampleCount      Int                   @default(0)
+  totalDurationMs  Int                   @default(0)
+  provider         String?               // Provider used for voice creation
+  failureReason    String?               // Reason if status is FAILED
   consentGrantedAt DateTime?
-  /** When the user revoked their voice */
-  revokedAt       DateTime?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  revokedAt        DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -330,8 +323,7 @@ model AbuseReport {
   category        String
   description     String            @db.Text
   status          AbuseReportStatus @default(OPEN)
-  /** Admin notes on resolution */
-  resolutionNotes String?           @db.Text
+  resolutionNotes String?           @db.Text // Admin notes on resolution
   resolvedAt      DateTime?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -345,25 +337,21 @@ model AbuseReport {
 // ─── Subscriptions & Entitlements ──────────────────────────
 
 model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String
-  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId               PlanId             @default(FREE)
-  status               SubscriptionStatus @default(ACTIVE)
-  platform             StorePlatform      @default(MANUAL)
-  /** Product ID from the app store */
-  storeProductId       String?
-  /** Original transaction ID from the store */
-  storeTransactionId   String?
-  /** Latest receipt data for re-validation */
-  latestReceipt        String?            @db.Text
-  currentPeriodStart   DateTime
-  currentPeriodEnd     DateTime
-  cancelledAt          DateTime?
-  /** Whether auto-renew is on */
-  autoRenew            Boolean            @default(true)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  id                 String             @id @default(cuid())
+  userId             String
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId             PlanId             @default(FREE)
+  status             SubscriptionStatus @default(ACTIVE)
+  platform           StorePlatform      @default(MANUAL)
+  storeProductId     String?            // Product ID from the app store
+  storeTransactionId String?            // Original transaction ID from the store
+  latestReceipt      String?            @db.Text // Latest receipt for re-validation
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
+  autoRenew          Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   @@unique([userId, planId, platform])
   @@index([userId])
@@ -373,19 +361,17 @@ model Subscription {
 }
 
 model EntitlementAudit {
-  id             String   @id @default(cuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action         String
-  planId         String?
-  platform       String?
-  transactionId  String?
-  /** Snapshot of entitlements at the time of the event */
-  entitlements   Json?
-  /** Extra details (receipt excerpt, error, etc.) */
-  details        Json?
-  ipAddress      String?
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action        String
+  planId        String?
+  platform      String?
+  transactionId String?
+  entitlements  Json?    // Snapshot of entitlements at the time of the event
+  details       Json?    // Extra details (receipt excerpt, error, etc.)
+  ipAddress     String?
+  createdAt     DateTime @default(now())
 
   @@index([userId])
   @@index([action])
@@ -396,17 +382,15 @@ model EntitlementAudit {
 // ─── Admin: Feature Flags & Audit ──────────────────────────
 
 model FeatureFlag {
-  id          String   @id @default(cuid())
-  key         String   @unique
-  enabled     Boolean  @default(false)
-  description String?
-  /** JSON rules: percentage rollout, user IDs, etc. */
-  rules       Json?
-  /** If true, this flag is a kill-switch (disabling a live feature) */
-  isKillSwitch Boolean @default(false)
-  updatedBy   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  key          String   @unique
+  enabled      Boolean  @default(false)
+  description  String?
+  rules        Json?    // JSON rules: percentage rollout, user IDs, etc.
+  isKillSwitch Boolean  @default(false)
+  updatedBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([key])
   @@map("feature_flags")
