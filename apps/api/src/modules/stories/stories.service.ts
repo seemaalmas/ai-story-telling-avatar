@@ -26,7 +26,7 @@ export class StoriesService {
     const where = {
       userId,
       ...(language && { language }),
-      ...(status && { status }),
+      ...(status && { status: status as 'DRAFT' | 'GENERATING' | 'COMPLETED' | 'FAILED' }),
     };
 
     const [stories, total] = await Promise.all([

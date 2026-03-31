@@ -12,7 +12,9 @@ export class AdminModerationService {
   // ─── Abuse Reports Queue ─────────────────────────────────
 
   async getAbuseReports(page = 1, limit = 20, status?: string) {
-    const where = status ? { status: status.toUpperCase() } : {};
+    const where = status
+      ? { status: status.toUpperCase() as 'OPEN' | 'INVESTIGATING' | 'RESOLVED_ACTION_TAKEN' | 'RESOLVED_NO_ACTION' | 'DISMISSED' }
+      : {};
 
     const [reports, total] = await Promise.all([
       this.prisma.abuseReport.findMany({
