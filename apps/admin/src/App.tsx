@@ -13,7 +13,7 @@ import { LanguagesPage } from './pages/LanguagesPage';
 import { AuditLogPage } from './pages/AuditLogPage';
 
 export function App() {
-  const { user, loading, login, logout, isAuthenticated } = useAuth();
+  const { user, loading, login, logout, error, isAuthenticated } = useAuth();
 
   if (loading) {
     return (
@@ -26,7 +26,7 @@ export function App() {
   if (!isAuthenticated) {
     return (
       <Routes>
-        <Route path="/login" element={<LoginPage onLogin={login} />} />
+        <Route path="/login" element={<LoginPage onLogin={login} authError={error} />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );

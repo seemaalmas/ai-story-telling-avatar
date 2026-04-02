@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 
 interface Props {
   onLogin: (email: string, password: string) => Promise<void>;
+  authError?: string | null;
 }
 
-export function LoginPage({ onLogin }: Props) {
+export function LoginPage({ onLogin, authError }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const displayError = error || authError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,8 +19,9 @@ export function LoginPage({ onLogin }: Props) {
     setLoading(true);
     try {
       await onLogin(email, password);
-    } catch {
-      setError('Invalid credentials or insufficient permissions. Admin/Super Admin role required.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -39,7 +43,7 @@ export function LoginPage({ onLogin }: Props) {
             <label style={styles.label}>Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.input} required />
           </div>
-          {error && <div style={styles.error}>{error}</div>}
+          {displayError && <div style={styles.error}>{displayError}</div>}
           <button type="submit" disabled={loading} style={styles.button}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
