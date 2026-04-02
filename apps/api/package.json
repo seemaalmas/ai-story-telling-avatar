@@ -63,6 +63,9 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.0"
   },
+  "prisma": {
+    "seed": "node prisma/promote-admin.js"
+  },
   "jest": {
     "moduleFileExtensions": ["js", "json", "ts"],
     "rootDir": ".",
