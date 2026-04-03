@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { AuthService } from '../../src/modules/auth/auth.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { OtpService } from '../../src/modules/auth/services/otp.service';
@@ -10,7 +10,7 @@ import { DeviceSessionService } from '../../src/modules/auth/services/device-ses
 import { GoogleAuthService } from '../../src/modules/auth/strategies/google.strategy';
 import { AppleAuthService } from '../../src/modules/auth/strategies/apple.strategy';
 
-jest.mock('bcrypt');
+jest.mock('bcryptjs');
 
 describe('AuthService', () => {
   let service: AuthService;
