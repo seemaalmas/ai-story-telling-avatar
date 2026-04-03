@@ -26,6 +26,7 @@
       },
       "package": "com.katha.ai"
     },
+    "newArchEnabled": true,
     "plugins": ["expo-router", "expo-localization", "expo-secure-store"],
     "experiments": {
       "typedRoutes": true
