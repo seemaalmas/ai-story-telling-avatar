@@ -2,7 +2,7 @@ import axios from 'axios';
 import { secureStorage } from '@/utils/storage';
 import { useAuthStore } from '@/store/auth.store';
 
-const RAW_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+const RAW_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:7000';
 const API_BASE_URL = RAW_URL.endsWith('/api/v1') ? RAW_URL : `${RAW_URL}/api/v1`;
 
 export const api = axios.create({

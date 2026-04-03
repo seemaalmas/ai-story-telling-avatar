@@ -8,7 +8,7 @@ services:
     container_name: katha-api
     restart: unless-stopped
     ports:
-      - '${APP_PORT:-3000}:3000'
+      - '${APP_PORT:-7000}:7000'
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
@@ -44,7 +44,7 @@ services:
     container_name: katha-admin
     restart: unless-stopped
     ports:
-      - '${ADMIN_PORT:-3001}:3001'
+      - '${ADMIN_PORT:-7001}:7001'
     environment:
       NODE_ENV: production
 

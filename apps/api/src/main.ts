@@ -19,7 +19,7 @@ async function bootstrap() {
 
   const defaultOrigins = isProd
     ? ['https://admin.katha.ai']
-    : ['http://localhost:3001', 'http://localhost:8081', 'http://localhost:19006'];
+    : ['http://localhost:7001', 'http://localhost:7002', 'http://localhost:8081'];
 
   app.enableCors({
     origin: process.env.CORS_ORIGINS?.split(',') ?? defaultOrigins,
@@ -65,7 +65,7 @@ async function bootstrap() {
   // ── Graceful Shutdown ───────────────────────────────────
   app.enableShutdownHooks();
 
-  const port = process.env.APP_PORT ?? 3000;
+  const port = process.env.APP_PORT ?? 7000;
   await app.listen(port);
   logger.log(`Katha API running on :${port} (${isProd ? 'production' : 'development'})`);
 }

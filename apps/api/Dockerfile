@@ -28,10 +28,10 @@ COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./package.json
 
 USER nestjs
-EXPOSE 3000
+EXPOSE 7000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:3000/api/v1/health || exit 1
+  CMD curl -f http://localhost:7000/api/v1/health || exit 1
 
 ENTRYPOINT ["tini", "--"]
 CMD ["node", "dist/main"]

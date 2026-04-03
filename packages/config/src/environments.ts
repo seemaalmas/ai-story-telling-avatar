@@ -28,12 +28,12 @@ export interface EnvironmentConfig {
 export const environments: Record<Environment, EnvironmentConfig> = {
   local: {
     name: 'local',
-    apiUrl: 'http://localhost:3000',
+    apiUrl: 'http://localhost:7000',
     debug: true,
     logging: { level: 'debug', prettyPrint: true },
     database: { poolMin: 2, poolMax: 10, ssl: false },
     redis: { tls: false },
-    cors: { origins: ['http://localhost:3001', 'http://localhost:8081'] },
+    cors: { origins: ['http://localhost:7001', 'http://localhost:7002'] },
     rateLimit: { ttl: 60000, limit: 1000 },
   },
   development: {
