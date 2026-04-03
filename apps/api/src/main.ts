@@ -17,8 +17,12 @@ async function bootstrap() {
   // ── Security ────────────────────────────────────────────
   app.use(helmet({ contentSecurityPolicy: isProd ? undefined : false }));
 
+  const defaultOrigins = isProd
+    ? ['https://admin.katha.ai']
+    : ['http://localhost:3001', 'http://localhost:8081', 'http://localhost:19006'];
+
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3001'],
+    origin: process.env.CORS_ORIGINS?.split(',') ?? defaultOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Trace-Id'],
