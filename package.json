@@ -34,7 +34,9 @@
     "prepare": "echo 'Monorepo ready'"
   },
   "overrides": {
-    "ajv": "^8.12.0"
+    "ajv": "^8.12.0",
+    "@react-native/dev-middleware": "0.74.84",
+    "@react-native/debugger-frontend": "0.74.84"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",
