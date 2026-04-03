@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
+import { secureStorage } from '@/utils/storage';
 
 interface SettingsState {
   language: string;
@@ -21,13 +21,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   notificationsEnabled: true,
 
   setLanguage: async (lang) => {
-    await SecureStore.setItemAsync('appLanguage', lang);
+    await secureStorage.set('appLanguage', lang);
     set({ language: lang });
   },
 
   toggleFamilySafe: async () => {
     const next = !get().familySafeMode;
-    await SecureStore.setItemAsync('familySafe', next ? 'true' : 'false');
+    await secureStorage.set('familySafe', next ? 'true' : 'false');
     set({ familySafeMode: next });
   },
 
@@ -35,15 +35,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   toggleNotifications: async () => {
     const next = !get().notificationsEnabled;
-    await SecureStore.setItemAsync('notifications', next ? 'true' : 'false');
+    await secureStorage.set('notifications', next ? 'true' : 'false');
     set({ notificationsEnabled: next });
   },
 
   hydrate: async () => {
     try {
-      const lang = await SecureStore.getItemAsync('appLanguage');
-      const safe = await SecureStore.getItemAsync('familySafe');
-      const notif = await SecureStore.getItemAsync('notifications');
+      const lang = await secureStorage.get('appLanguage');
+      const safe = await secureStorage.get('familySafe');
+      const notif = await secureStorage.get('notifications');
       set({
         language: lang ?? 'en',
         familySafeMode: safe !== 'false',

@@ -71,6 +71,8 @@ export class AuthController {
     return {
       message: 'OTP sent to your email',
       expiresAt: result.expiresAt,
+      // In development, include OTP in response for testing
+      ...(result.code && { code: result.code }),
     };
   }
 

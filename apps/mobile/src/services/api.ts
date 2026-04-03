@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import { secureStorage } from '@/utils/storage';
 import { useAuthStore } from '@/store/auth.store';
 
 const RAW_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
@@ -14,7 +14,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('accessToken');
+  const token = await secureStorage.get('accessToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -30,7 +30,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        const refreshToken = await secureStorage.get('refreshToken');
         if (!refreshToken) {
           useAuthStore.getState().logout();
           return Promise.reject(error);
@@ -41,8 +41,8 @@ api.interceptors.response.use(
         });
 
         const { accessToken, refreshToken: newRefreshToken } = response.data;
-        await SecureStore.setItemAsync('accessToken', accessToken);
-        await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+        await secureStorage.set('accessToken', accessToken);
+        await secureStorage.set('refreshToken', newRefreshToken);
         useAuthStore.getState().setTokens(accessToken, newRefreshToken);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
+import { secureStorage } from '@/utils/storage';
 
 interface User {
   id: string;
@@ -35,25 +35,25 @@ export const useAuthStore = create<AuthState>((set) => ({
   hasCompletedOnboarding: false,
 
   setUser: async (user) => {
-    await SecureStore.setItemAsync('user', JSON.stringify(user));
+    await secureStorage.set('user', JSON.stringify(user));
     set({ user });
   },
 
   setTokens: async (accessToken, refreshToken) => {
-    await SecureStore.setItemAsync('accessToken', accessToken);
-    await SecureStore.setItemAsync('refreshToken', refreshToken);
+    await secureStorage.set('accessToken', accessToken);
+    await secureStorage.set('refreshToken', refreshToken);
     set({ accessToken, refreshToken, isAuthenticated: true });
   },
 
   setOnboardingComplete: async () => {
-    await SecureStore.setItemAsync('onboardingComplete', 'true');
+    await secureStorage.set('onboardingComplete', 'true');
     set({ hasCompletedOnboarding: true });
   },
 
   logout: async () => {
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('refreshToken');
-    await SecureStore.deleteItemAsync('user');
+    await secureStorage.remove('accessToken');
+    await secureStorage.remove('refreshToken');
+    await secureStorage.remove('user');
     set({
       user: null,
       accessToken: null,
@@ -64,10 +64,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   hydrate: async () => {
     try {
-      const accessToken = await SecureStore.getItemAsync('accessToken');
-      const refreshToken = await SecureStore.getItemAsync('refreshToken');
-      const onboarding = await SecureStore.getItemAsync('onboardingComplete');
-      const userJson = await SecureStore.getItemAsync('user');
+      const accessToken = await secureStorage.get('accessToken');
+      const refreshToken = await secureStorage.get('refreshToken');
+      const onboarding = await secureStorage.get('onboardingComplete');
+      const userJson = await secureStorage.get('user');
 
       let user: User | null = null;
       if (userJson) {

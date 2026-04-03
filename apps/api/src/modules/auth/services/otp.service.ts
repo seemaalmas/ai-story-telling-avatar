@@ -19,7 +19,7 @@ export class OtpService {
     private readonly config: ConfigService,
   ) {}
 
-  async generateOtp(email: string, purpose = 'LOGIN'): Promise<{ expiresAt: Date }> {
+  async generateOtp(email: string, purpose = 'LOGIN'): Promise<{ expiresAt: Date; code?: string }> {
     const otpConfig = this.config.get('auth.otp');
 
     // Rate limit: count OTPs created in the last TTL window
@@ -62,10 +62,12 @@ export class OtpService {
       },
     });
 
-    // TODO: Send OTP via email/SMS service
+    // TODO: Send OTP via email/SMS service (e.g. SendGrid, AWS SES)
     this.logger.log(`OTP generated for ${email} (purpose: ${purpose}): ${code}`);
 
-    return { expiresAt };
+    // In development, return the code in the response so it can be tested
+    const isDev = process.env.NODE_ENV === 'development';
+    return { expiresAt, ...(isDev && { code }) };
   }
 
   async verifyOtp(email: string, code: string, purpose = 'LOGIN'): Promise<void> {

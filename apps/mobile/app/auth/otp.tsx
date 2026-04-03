@@ -9,12 +9,16 @@ import { theme } from '@/theme';
 const OTP_LENGTH = 6;
 
 export default function OtpScreen() {
-  const { email } = useLocalSearchParams<{ email: string }>();
+  const { email, devCode } = useLocalSearchParams<{ email: string; devCode?: string }>();
   const router = useRouter();
   const setTokens = useAuthStore((s) => s.setTokens);
   const setUser = useAuthStore((s) => s.setUser);
 
-  const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
+  // Auto-fill OTP in dev mode
+  const initialDigits = devCode
+    ? devCode.split('').concat(Array(OTP_LENGTH).fill('')).slice(0, OTP_LENGTH)
+    : Array(OTP_LENGTH).fill('');
+  const [digits, setDigits] = useState<string[]>(initialDigits);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const refs = useRef<Array<RNTextInput | null>>([]);
@@ -88,6 +92,12 @@ export default function OtpScreen() {
         ))}
       </View>
 
+      {devCode ? (
+        <View style={styles.devBanner}>
+          <Text style={styles.devText}>DEV MODE: OTP auto-filled ({devCode})</Text>
+        </View>
+      ) : null}
+
       {error ? <ErrorBox message={error} /> : null}
 
       <PrimaryButton title="Verify" onPress={handleVerify} loading={loading} accessibilityLabel="Verify OTP" />
@@ -115,4 +125,6 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   otpBoxFilled: { borderColor: theme.colors.primary },
+  devBanner: { backgroundColor: '#FEF3C7', padding: 8, borderRadius: 8, marginBottom: 12 },
+  devText: { fontSize: 12, color: '#92400E', textAlign: 'center', fontWeight: '600' },
 });
