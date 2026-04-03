@@ -15,13 +15,22 @@ import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { HealthModule } from './modules/health/health.module';
 import { appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig, subscriptionConfig } from './config';
+import * as path from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig, databaseConfig, authConfig, redisConfig, storyEngineConfig, voiceConfig, subscriptionConfig],
-      envFilePath: ['.env.local', '.env', '.env.development'],
+      envFilePath: [
+        '.env.local',
+        '.env',
+        '.env.development',
+        // Also check monorepo root for env files
+        path.resolve(__dirname, '../../../.env.local'),
+        path.resolve(__dirname, '../../../.env'),
+        path.resolve(__dirname, '../../../.env.development'),
+      ],
     }),
     ThrottlerModule.forRoot([
       {
