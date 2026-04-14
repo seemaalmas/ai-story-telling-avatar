@@ -148,6 +148,19 @@ Postgres isn't running. Run `npm run docker:up`.
 
 Missing env file. Verify `.env.development` exists at the repo root.
 
+### Error: `EADDRINUSE: address already in use :::7000`
+
+A previous `npm run dev` didn't shut down cleanly (common on Windows —
+Ctrl+C doesn't always kill npm's child node process). Free the ports:
+
+```bash
+npm run ports:free            # frees 7000, 7001, 7002 cross-platform
+npm run ports:free 7000 8080  # or specific ports
+```
+
+The preflight also detects this before Nest starts and tells you the exact
+Windows commands to run manually if you prefer.
+
 ## 6b. Enabling Google Sign-In locally
 
 Google login calls `expo-auth-session` on the client which exchanges an

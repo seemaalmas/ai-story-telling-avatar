@@ -117,6 +117,42 @@ const host = parsed.hostname;
 const port = Number(parsed.port || 5432);
 const user = decodeURIComponent(parsed.username || '');
 
+// ── Check the API's own port isn't already in use (common Windows pain) ─
+const apiPort = Number(process.env.APP_PORT || 7000);
+const tester = net.createServer();
+tester.once('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    fail([
+      `Port ${apiPort} is already in use.`,
+      '',
+      'This is almost always a previous "npm run dev" that did not shut down',
+      'cleanly (common on Windows — Ctrl+C does not always kill children).',
+      '',
+      'Find and kill it:',
+      '  Windows (cmd/PowerShell):',
+      `    netstat -ano | findstr :${apiPort}`,
+      '    taskkill /PID <PID> /F',
+      '',
+      '  One-liner (cmd.exe):',
+      `    for /f "tokens=5" %a in ('netstat -ano ^| findstr :${apiPort}') do taskkill /PID %a /F`,
+      '',
+      '  macOS / Linux:',
+      `    lsof -ti:${apiPort} | xargs kill -9`,
+      '',
+      'Or run:',
+      '    npm run ports:free',
+    ]);
+  }
+  // Non-EADDRINUSE errors (e.g. permission): ignore and continue to DB probe.
+  runDbProbe();
+});
+tester.once('listening', () => {
+  tester.close(() => runDbProbe());
+});
+tester.listen(apiPort, '0.0.0.0');
+
+function runDbProbe() {
+
 // ── Detect the "Tenant or user not found" scenario ─────────────────────
 const isSupabasePooler =
   /supabase\.(co|com)$/.test(host) || /pooler\.supabase/.test(host) || host.includes('supavisor');
@@ -176,6 +212,8 @@ socket.once('connect', () => done(true));
 socket.once('timeout', () => done(false, 'timeout after 3s'));
 socket.once('error', (err) => done(false, err.code || err.message));
 socket.connect(port, host);
+
+}  // end runDbProbe
 
 function fail(lines) {
   console.error('\n  X PREFLIGHT FAILED\n');
