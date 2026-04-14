@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node -r tsconfig-paths/register src/main.ts",
+    "dev": "node ../../scripts/db-preflight.js && ts-node -r tsconfig-paths/register src/main.ts",
+    "dev:nopreflight": "ts-node -r tsconfig-paths/register src/main.ts",
+    "db:preflight": "node ../../scripts/db-preflight.js",
     "dev:watch": "nest start --watch",
     "build": "nest build",
     "start": "node dist/main",

@@ -26,15 +26,23 @@ app/                # Expo Router file-based routing
 ## Development
 
 ```bash
-# Start Expo dev server
+# Start Expo dev server (QR for iOS/Android Expo Go)
 npm run dev
 
-# Run on iOS simulator
+# iOS simulator
 npm run dev:ios
 
-# Run on Android emulator
+# Android emulator
 npm run dev:android
+
+# Web browser (fastest iteration loop, no emulator needed)
+npm run dev:web        # -> http://localhost:7002
 ```
+
+Web mode uses `react-native-web`. `expo-secure-store` automatically falls
+back to `localStorage` in the browser (see `src/utils/storage.ts`), so auth
+and settings persistence work just like on device. Apple Sign-In is hidden
+on web (iOS-only); Google OAuth and email/OTP both work.
 
 ## Key Features
 
@@ -53,6 +61,9 @@ npm run build:ios
 
 # Build for Android
 npm run build:android
+
+# Build the web bundle (static site)
+npm run build:web
 ```
 
 ## Testing

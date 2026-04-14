@@ -52,29 +52,39 @@ git clone <repo-url>
 cd ai-story-telling-avatar
 npm install
 
-# 2. Start infrastructure (Postgres + Redis)
+# 2. Start Postgres + Redis in Docker
 npm run docker:up
 
-# 3. Set up environment
-cp .env.example .env.local
+# 3. Initialise the database (first time only)
+npm run db:generate && npm run db:migrate && npm run db:seed
 
-# 4. Initialize database
-npm run db:generate
-npm run db:migrate
-npm run db:seed
-
-# 5. Start all services
-npm run dev
+# 4. Start everything (with preflight diagnostic)
+npm run start:local
 ```
 
 ### Start individual services
 
 ```bash
-npm run dev:api      # NestJS API on :3000
-npm run dev:mobile   # Expo dev server
-npm run dev:admin    # Admin panel on :3001
+npm run dev:api      # NestJS API on       :7000
+npm run dev:mobile   # Expo dev server     :7002 (QR for iOS/Android)
+npm run dev:web      # Mobile in BROWSER   :7002 (no emulator needed)
+npm run dev:admin    # Admin panel         :7001
 npm run dev:worker   # BullMQ worker
 ```
+
+### Test the mobile app in a browser (no Android emulator needed)
+
+```bash
+npm run dev:api      # terminal 1
+npm run dev:web      # terminal 2 — then open http://localhost:7002
+```
+
+### Troubleshooting: `FATAL: Tenant or user not found`
+
+That's a Supabase pooler error, not a local-Postgres error. It almost always
+means an OS-level `DATABASE_URL` (set on your system) is overriding the
+repo's `.env.development`. Run `npm run db:preflight` for a diagnostic, or
+see [docs/LOCAL_SETUP.md](./docs/LOCAL_SETUP.md) for the full fix.
 
 ## Environment Separation
 
@@ -114,6 +124,11 @@ When the API is running, Swagger docs are available at:
 ```
 http://localhost:3000/api/docs
 ```
+
+## Docs
+
+- [Local Setup & Browser Testing](./docs/LOCAL_SETUP.md)
+- [Engagement Roadmap (what to build next)](./docs/ENGAGEMENT_ROADMAP.md)
 
 ## Privacy First
 

@@ -4,7 +4,10 @@ const path = require('path');
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../..');
 
-const config = getDefaultConfig(projectRoot);
+const config = getDefaultConfig(projectRoot, {
+  // Enable CSS support for react-native-web bundles.
+  isCSSEnabled: true,
+});
 
 // Watch all files in the monorepo
 config.watchFolders = [workspaceRoot];

@@ -26,6 +26,14 @@
       },
       "package": "com.katha.ai"
     },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "name": "Katha AI",
+      "shortName": "Katha",
+      "themeColor": "#FF6B35",
+      "backgroundColor": "#FFFFFF"
+    },
     "newArchEnabled": true,
     "plugins": ["expo-router", "expo-localization", "expo-secure-store"],
     "experiments": {
