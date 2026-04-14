@@ -18,16 +18,21 @@ const fs = require('fs');
 const net = require('net');
 const path = require('path');
 
+// Track which file defined DATABASE_URL so we can tell the user EXACTLY which
+// file to edit when it points at the wrong DB.
+let databaseUrlSource = process.env.DATABASE_URL ? '<OS environment>' : null;
+const initialDatabaseUrl = process.env.DATABASE_URL;
+
 // ── Load env the SAME way the API does (so we diagnose what IT sees) ────
 // Priority (first hit wins, unless process.env already has a value):
 //   apps/api/.env.local -> apps/api/.env -> apps/api/.env.development
 //   -> repo root .env.local -> .env -> .env.development
 function tryLoadDotenv(p) {
   if (!fs.existsSync(p)) return false;
+  const before = process.env.DATABASE_URL;
   try {
     require('dotenv').config({ path: p });
     console.log(`  loaded env: ${p}`);
-    return true;
   } catch {
     // dotenv may not be installed at root; fall back to manual parse
     const src = fs.readFileSync(p, 'utf8');
@@ -44,8 +49,12 @@ function tryLoadDotenv(p) {
       if (process.env[k] === undefined) process.env[k] = v;
     }
     console.log(`  loaded env (manual): ${p}`);
-    return true;
   }
+  const after = process.env.DATABASE_URL;
+  if (!before && after && !databaseUrlSource) {
+    databaseUrlSource = p;
+  }
+  return true;
 }
 
 const repoRoot = path.resolve(__dirname, '..');
@@ -79,9 +88,23 @@ if (!url) {
   ]);
 }
 
-// Mask the password so we can safely print it
-const masked = url.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:***@');
+// Mask the password so we can safely print it.
+// The password may contain '@' so we split on the LAST '@' before host.
+function maskUrl(u) {
+  const schemeIdx = u.indexOf('://');
+  if (schemeIdx < 0) return u;
+  const afterScheme = u.slice(schemeIdx + 3);
+  const lastAt = afterScheme.lastIndexOf('@');
+  if (lastAt < 0) return u;
+  const userInfo = afterScheme.slice(0, lastAt);
+  const hostPart = afterScheme.slice(lastAt);
+  const colonIdx = userInfo.indexOf(':');
+  const username = colonIdx < 0 ? userInfo : userInfo.slice(0, colonIdx);
+  return `${u.slice(0, schemeIdx + 3)}${username}:***${hostPart}`;
+}
+const masked = maskUrl(url);
 console.log(`  DATABASE_URL: ${masked}`);
+console.log(`  set by:       ${databaseUrlSource ?? '<unknown>'}`);
 
 let parsed;
 try {

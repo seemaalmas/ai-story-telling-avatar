@@ -97,27 +97,48 @@ Then open **http://localhost:7002** — the Expo Router screens render via
 ### Error: `FATAL: Tenant or user not found`
 
 **This is a Supabase/Supavisor pooler error, not a local Postgres error.**
-If you see it, your `DATABASE_URL` is pointing at Supabase rather than the
-local Docker Postgres. On Windows this is almost always because an OS-level
-`DATABASE_URL` is overriding the repo's `.env.development`.
 
-Fix in the same terminal before retrying:
+Our preflight prints exactly where the bad URL came from — look at the
+`set by:` line in its output:
 
-```powershell
-# PowerShell
-Remove-Item Env:DATABASE_URL
-npm run dev
+```
+  DATABASE_URL: postgresql://postgres.xxxxxx:***@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
+  set by:       D:\...\apps\api\.env
 ```
 
-```cmd
-rem cmd.exe
-set DATABASE_URL=
-npm run dev
-```
+Depending on the `set by:` value, fix it this way:
 
-To permanently remove the system env var: Windows → Settings → System →
-About → Advanced system settings → Environment Variables → delete
-`DATABASE_URL` from both User and System lists, then open a new terminal.
+1. **`set by: <OS environment>`** — you have a system env var overriding
+   everything. Clear it in the terminal before retrying:
+   ```powershell
+   # PowerShell
+   Remove-Item Env:DATABASE_URL
+   npm run dev
+   ```
+   ```cmd
+   rem cmd.exe
+   set DATABASE_URL=
+   npm run dev
+   ```
+   Permanently: Windows → Settings → System → About → Advanced system
+   settings → Environment Variables → delete `DATABASE_URL` from both
+   User and System lists, then open a new terminal.
+
+2. **`set by: …\apps\api\.env` or `…\.env`** — a local (gitignored) env
+   file has the Supabase URL. Open that exact file in your editor and
+   either:
+   - Delete the `DATABASE_URL=…` line entirely (to fall back to the
+     committed `.env.development` with local Postgres), OR
+   - Replace it with the local URL:
+     ```
+     DATABASE_URL=postgresql://katha:katha_secret@localhost:5432/katha_dev?schema=public
+     ```
+   Do **not** also delete `.env.development` — that's the committed default
+   that the preflight and the app both fall back to.
+
+3. **`set by: …\.env.development`** — the committed default is correct;
+   if you still see this error, your local Postgres isn't running
+   (`npm run docker:up`).
 
 ### Error: `Can't reach database server`
 
@@ -126,6 +147,45 @@ Postgres isn't running. Run `npm run docker:up`.
 ### Error: `DATABASE_URL is not set`
 
 Missing env file. Verify `.env.development` exists at the repo root.
+
+## 6b. Enabling Google Sign-In locally
+
+Google login calls `expo-auth-session` on the client which exchanges an
+`id_token` with `POST /api/v1/auth/google`. You need two pieces:
+
+### On the API (server side)
+
+Set in `.env.local` (or `apps/api/.env.local`):
+```
+GOOGLE_CLIENT_ID=<your Web OAuth 2.0 client id>
+GOOGLE_CLIENT_SECRET=<secret, only required if using OAuth callback flow>
+```
+These are used by the backend to verify the Google `id_token` signature.
+
+### On the mobile app (client side)
+
+Set in `apps/mobile/.env.local` (create if missing) — note the
+`EXPO_PUBLIC_` prefix is required so Expo bundles them into the client:
+```
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<Web client id from Google Cloud Console>
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=<iOS client id>          # optional, native iOS only
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=<Android client id>  # optional, native Android only
+```
+
+### Where to get these client IDs
+
+1. Go to <https://console.cloud.google.com/apis/credentials>
+2. Create an **OAuth 2.0 Client ID** of type **Web application**.
+3. Under **Authorized JavaScript origins** add:
+   `http://localhost:7002`
+4. Under **Authorized redirect URIs** add:
+   `http://localhost:7002` and `https://auth.expo.io/@your-expo-user/katha-ai`
+5. Copy the Client ID into `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` **and**
+   `GOOGLE_CLIENT_ID` on the API side.
+
+If none of the Google env vars are set, the "Continue with Google" button
+shows a helpful alert instead of failing silently. OTP and email/password
+login work without any OAuth config at all.
 
 ## 7. Browser testing tips
 

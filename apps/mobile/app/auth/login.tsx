@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import { api } from '@/services/api';
 import { useAuthStore } from '@/store/auth.store';
 import { ScreenShell, PrimaryButton, SecondaryButton, TextInput, GhostButton } from '@/components';
 import { theme } from '@/theme';
+
+// Required so the browser redirect completes on mobile.
+WebBrowser.maybeCompleteAuthSession();
+
+// Google Client IDs are read from Expo public env vars (exposed to client).
+// Set these in .env.local / EAS env:
+//   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=...
+//   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=...
+//   EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=...
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -15,6 +29,44 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [mode, setMode] = useState<'otp' | 'password'>('otp');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const googleConfigured = Boolean(
+    GOOGLE_WEB_CLIENT_ID || GOOGLE_IOS_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID,
+  );
+
+  const [_request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: GOOGLE_WEB_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+  });
+
+  // Handle the Google auth response.
+  useEffect(() => {
+    const exchange = async (idToken: string) => {
+      setGoogleLoading(true);
+      try {
+        const { data } = await api.post('/auth/google', { idToken });
+        await setTokens(data.accessToken, data.refreshToken);
+        const profileRes = await api.get('/users/me');
+        await setUser(profileRes.data);
+        router.replace('/(tabs)/home');
+      } catch (err: unknown) {
+        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+        setError(msg ?? 'Google sign-in failed');
+      } finally {
+        setGoogleLoading(false);
+      }
+    };
+
+    if (response?.type === 'success') {
+      const idToken = response.params?.id_token;
+      if (idToken) exchange(idToken);
+    } else if (response?.type === 'error') {
+      setError('Google sign-in was cancelled or failed');
+    }
+  }, [response, router, setTokens, setUser]);
 
   const handleOtp = async () => {
     if (!email.includes('@')) {
@@ -59,13 +111,22 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    Alert.alert(
-      'Google Sign-In',
-      'Google login requires OAuth credentials (GOOGLE_CLIENT_ID) configured in .env. ' +
-      'For now, use OTP or email/password login.',
-      [{ text: 'OK' }],
-    );
+  const handleGoogleLogin = async () => {
+    if (!googleConfigured) {
+      Alert.alert(
+        'Google Sign-In not configured',
+        'Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (and optionally iOS/Android client IDs) in your ' +
+          '.env.local to enable Google login. See docs/LOCAL_SETUP.md for details.',
+        [{ text: 'OK' }],
+      );
+      return;
+    }
+    setError('');
+    try {
+      await promptAsync();
+    } catch {
+      setError('Could not open Google sign-in');
+    }
   };
 
   return (
@@ -120,12 +181,25 @@ export default function LoginScreen() {
           <View style={styles.line} />
         </View>
 
-        <SecondaryButton title="Continue with Google" onPress={handleGoogleLogin} accessibilityLabel="Sign in with Google" />
+        <SecondaryButton
+          title={googleLoading ? 'Signing in…' : 'Continue with Google'}
+          onPress={handleGoogleLogin}
+          accessibilityLabel="Sign in with Google"
+        />
         {Platform.OS === 'ios' && (
           <SecondaryButton title="Continue with Apple" onPress={() => {
             Alert.alert('Apple Sign-In', 'Apple login requires OAuth credentials configured in .env.');
           }} accessibilityLabel="Sign in with Apple" />
         )}
+
+        <View style={styles.registerRow}>
+          <Text style={styles.registerLabel}>New to Katha?</Text>
+          <GhostButton
+            title="Create an account"
+            onPress={() => router.push('/auth/register')}
+            accessibilityLabel="Go to register screen"
+          />
+        </View>
       </View>
 
       <Text style={styles.terms} accessibilityRole="text">
@@ -147,5 +221,7 @@ const styles = StyleSheet.create({
   line: { flex: 1, height: 1, backgroundColor: theme.colors.border },
   dividerText: { marginHorizontal: 12, fontSize: 13, color: theme.colors.textLight },
   errorText: { color: theme.colors.error, fontSize: 13, textAlign: 'center' },
+  registerRow: { alignItems: 'center', marginTop: 8 },
+  registerLabel: { fontSize: 13, color: theme.colors.textSecondary },
   terms: { fontSize: 12, color: theme.colors.textLight, textAlign: 'center', marginTop: 24, lineHeight: 18 },
 });
