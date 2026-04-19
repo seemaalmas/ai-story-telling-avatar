@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
@@ -20,6 +20,62 @@ const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 
+// On web, expo-auth-session requires webClientId to be defined or it throws
+// from inside useIdTokenAuthRequest. On native, iosClientId / androidClientId
+// are required for their respective platforms. We must know we have the right
+// one BEFORE calling the hook — hence this platform-aware guard.
+const googleConfigured = (() => {
+  if (Platform.OS === 'web') return Boolean(GOOGLE_WEB_CLIENT_ID);
+  if (Platform.OS === 'ios') return Boolean(GOOGLE_IOS_CLIENT_ID || GOOGLE_WEB_CLIENT_ID);
+  if (Platform.OS === 'android') return Boolean(GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID);
+  return Boolean(GOOGLE_WEB_CLIENT_ID);
+})();
+
+// Child component — only mounted when Google is configured.
+// Safe to call useIdTokenAuthRequest here because we know the right client
+// ID for the current platform is non-empty.
+function GoogleSignInButton({ onIdToken, onError }: {
+  onIdToken: (idToken: string) => void;
+  onError: (message: string) => void;
+}) {
+  const [_request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: GOOGLE_WEB_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+  });
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const idToken = response.params?.id_token;
+      if (idToken) onIdToken(idToken);
+      else onError('Google did not return an id_token');
+    } else if (response?.type === 'error') {
+      onError('Google sign-in was cancelled or failed');
+    }
+  }, [response, onIdToken, onError]);
+
+  const handlePress = async () => {
+    setBusy(true);
+    try {
+      await promptAsync();
+    } catch {
+      onError('Could not open Google sign-in');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <SecondaryButton
+      title={busy ? 'Signing in…' : 'Continue with Google'}
+      onPress={handlePress}
+      accessibilityLabel="Sign in with Google"
+    />
+  );
+}
+
 export default function LoginScreen() {
   const router = useRouter();
   const setTokens = useAuthStore((s) => s.setTokens);
@@ -29,44 +85,24 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [mode, setMode] = useState<'otp' | 'password'>('otp');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
-  const googleConfigured = Boolean(
-    GOOGLE_WEB_CLIENT_ID || GOOGLE_IOS_CLIENT_ID || GOOGLE_ANDROID_CLIENT_ID,
-  );
-
-  const [_request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_WEB_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-  });
-
-  // Handle the Google auth response.
-  useEffect(() => {
-    const exchange = async (idToken: string) => {
-      setGoogleLoading(true);
-      try {
-        const { data } = await api.post('/auth/google', { idToken });
-        await setTokens(data.accessToken, data.refreshToken);
-        const profileRes = await api.get('/users/me');
-        await setUser(profileRes.data);
-        router.replace('/(tabs)/home');
-      } catch (err: unknown) {
-        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-        setError(msg ?? 'Google sign-in failed');
-      } finally {
-        setGoogleLoading(false);
-      }
-    };
-
-    if (response?.type === 'success') {
-      const idToken = response.params?.id_token;
-      if (idToken) exchange(idToken);
-    } else if (response?.type === 'error') {
-      setError('Google sign-in was cancelled or failed');
+  const handleGoogleIdToken = useCallback(async (idToken: string) => {
+    setError('');
+    try {
+      const { data } = await api.post('/auth/google', { idToken });
+      await setTokens(data.accessToken, data.refreshToken);
+      const profileRes = await api.get('/users/me');
+      await setUser(profileRes.data);
+      router.replace('/(tabs)/home');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg ?? 'Google sign-in failed');
     }
-  }, [response, router, setTokens, setUser]);
+  }, [router, setTokens, setUser]);
+
+  const handleGoogleError = useCallback((message: string) => {
+    setError(message);
+  }, []);
 
   const handleOtp = async () => {
     if (!email.includes('@')) {
@@ -111,22 +147,13 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    if (!googleConfigured) {
-      Alert.alert(
-        'Google Sign-In not configured',
-        'Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (and optionally iOS/Android client IDs) in your ' +
-          '.env.local to enable Google login. See docs/LOCAL_SETUP.md for details.',
-        [{ text: 'OK' }],
-      );
-      return;
-    }
-    setError('');
-    try {
-      await promptAsync();
-    } catch {
-      setError('Could not open Google sign-in');
-    }
+  const handleGoogleUnconfigured = () => {
+    Alert.alert(
+      'Google Sign-In not configured',
+      'Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (and optionally iOS/Android client IDs) in your ' +
+        'apps/mobile/.env.local, then restart the dev server. See docs/LOCAL_SETUP.md §6b.',
+      [{ text: 'OK' }],
+    );
   };
 
   return (
@@ -181,11 +208,16 @@ export default function LoginScreen() {
           <View style={styles.line} />
         </View>
 
-        <SecondaryButton
-          title={googleLoading ? 'Signing in…' : 'Continue with Google'}
-          onPress={handleGoogleLogin}
-          accessibilityLabel="Sign in with Google"
-        />
+        {googleConfigured ? (
+          <GoogleSignInButton onIdToken={handleGoogleIdToken} onError={handleGoogleError} />
+        ) : (
+          <SecondaryButton
+            title="Continue with Google"
+            onPress={handleGoogleUnconfigured}
+            accessibilityLabel="Sign in with Google"
+          />
+        )}
+
         {Platform.OS === 'ios' && (
           <SecondaryButton title="Continue with Apple" onPress={() => {
             Alert.alert('Apple Sign-In', 'Apple login requires OAuth credentials configured in .env.');
