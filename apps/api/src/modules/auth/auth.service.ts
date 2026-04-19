@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -46,28 +47,39 @@ export class AuthService {
   // ── Email/Password Registration ─────────────────────────
 
   async register(dto: RegisterDto): Promise<AuthTokens> {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase().trim() },
-    });
+    try {
+      const existing = await this.prisma.user.findUnique({
+        where: { email: dto.email.toLowerCase().trim() },
+      });
 
-    if (existing) {
-      throw new ConflictException('Email already registered');
+      if (existing) {
+        throw new ConflictException('Email already registered');
+      }
+
+      const passwordHash = await bcrypt.hash(dto.password, 12);
+
+      const user = await this.prisma.user.create({
+        data: {
+          email: dto.email.toLowerCase().trim(),
+          name: dto.name.trim(),
+          passwordHash,
+          authProvider: 'EMAIL',
+          preferredLanguage: dto.preferredLanguage ?? 'en',
+        },
+      });
+
+      this.logger.log(`User registered: ${user.email}`);
+      return this.generateTokens(user.id, user.email);
+    } catch (error) {
+      if (error instanceof ConflictException) throw error;
+      this.logger.error(`Registration failed: ${error instanceof Error ? error.message : error}`);
+      if (String(error).includes('does not exist') || String(error).includes('P2021')) {
+        throw new InternalServerErrorException(
+          'Database tables not found. Run: npm run db:migrate && npm run db:seed',
+        );
+      }
+      throw error;
     }
-
-    const passwordHash = await bcrypt.hash(dto.password, 12);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email.toLowerCase().trim(),
-        name: dto.name.trim(),
-        passwordHash,
-        authProvider: 'EMAIL',
-        preferredLanguage: dto.preferredLanguage ?? 'en',
-      },
-    });
-
-    this.logger.log(`User registered: ${user.email}`);
-    return this.generateTokens(user.id, user.email);
   }
 
   // ── Email/Password Login ────────────────────────────────

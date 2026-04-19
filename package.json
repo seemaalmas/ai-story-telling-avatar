@@ -30,6 +30,7 @@
     "verify:env": "bash scripts/verify-env.sh",
     "db:generate": "npm run --workspace=apps/api db:generate",
     "db:migrate": "npm run --workspace=apps/api db:migrate",
+    "db:setup": "npm run --workspace=apps/api db:setup",
     "db:seed": "npm run --workspace=apps/api db:seed",
     "db:studio": "npm run --workspace=apps/api db:studio",
     "docker:up": "docker compose up -d",
