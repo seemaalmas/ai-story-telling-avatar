@@ -20,6 +20,7 @@ export interface StorySessionState {
   tone: StoryTone;
   language: string;
   avatarId?: string;
+  narratorRole?: string;
   currentNodeId: string;
   /** Ordered list of node IDs the user has visited */
   path: string[];
@@ -116,6 +117,7 @@ export interface StoryLLMRequest {
   tone: StoryTone;
   language: string;
   avatarPersonality?: string;
+  narratorRole?: string;
   /** Accumulated context from previous nodes */
   context: string;
   /** The user's selected choice label, or the initial prompt */
@@ -176,6 +178,7 @@ export interface StartStoryInput {
   tone: StoryTone;
   language: string;
   avatarId?: string;
+  narratorRole?: string;
   /** Initial prompt or seed ID */
   seedId?: string;
   prompt?: string;

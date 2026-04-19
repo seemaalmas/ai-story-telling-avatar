@@ -1,25 +1,73 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-/**
- * Provider-agnostic LLM interface for the story engine.
- *
- * This service abstracts the actual LLM call so the story engine
- * doesn't care whether the backend is OpenAI, Anthropic, Google, or a mock.
- * Swap the implementation by changing the AI_PROVIDER env var.
- */
-
 export interface LLMGenerateResult {
   content: string;
   model: string;
   tokensUsed: number;
 }
 
-/**
- * Contract that any LLM backend must implement.
- */
 export interface LLMBackend {
   generate(systemPrompt: string, userPrompt: string): Promise<LLMGenerateResult>;
+}
+
+class GrokLLMBackend implements LLMBackend {
+  private readonly logger = new Logger('GrokLLMBackend');
+  private readonly apiKey: string;
+  private readonly model: string;
+  private readonly baseUrl: string;
+
+  constructor(config: ConfigService) {
+    this.apiKey = config.get<string>('GROK_API_KEY') ?? '';
+    this.model = config.get<string>('GROK_MODEL') ?? 'grok-3-mini-fast';
+    this.baseUrl = config.get<string>('GROK_BASE_URL') ?? 'https://api.x.ai/v1';
+
+    if (!this.apiKey) {
+      throw new Error('GROK_API_KEY is required when AI_PROVIDER=grok');
+    }
+    this.logger.log(`Grok backend initialized (model=${this.model})`);
+  }
+
+  async generate(systemPrompt: string, userPrompt: string): Promise<LLMGenerateResult> {
+    const url = `${this.baseUrl}/chat/completions`;
+
+    const body = {
+      model: this.model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.8,
+      max_tokens: 2048,
+    };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => 'unknown');
+      this.logger.error(`Grok API error ${res.status}: ${errText}`);
+      throw new Error(`Grok API returned ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+    const choice = data.choices?.[0];
+    if (!choice?.message?.content) {
+      throw new Error('Grok API returned empty response');
+    }
+
+    return {
+      content: choice.message.content,
+      model: data.model ?? this.model,
+      tokensUsed: data.usage?.total_tokens ?? 0,
+    };
+  }
 }
 
 /**
@@ -132,12 +180,13 @@ export class StoryLLMService {
       case 'mock':
         return new MockLLMBackend();
 
+      case 'grok':
+        return new GrokLLMBackend(this.config);
+
       case 'openai':
-        // TODO: return new OpenAILLMBackend(this.config);
         throw new Error('OpenAI backend not yet implemented');
 
       case 'anthropic':
-        // TODO: return new AnthropicLLMBackend(this.config);
         throw new Error('Anthropic backend not yet implemented');
 
       default:

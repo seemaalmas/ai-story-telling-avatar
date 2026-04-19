@@ -41,6 +41,11 @@ export class StartStoryDto {
   @IsString()
   avatarId?: string;
 
+  @ApiPropertyOptional({ description: 'Narrator role (e.g. father, mother, grandmother)', enum: ['father', 'mother', 'grandmother', 'grandfather', 'teacher', 'friend'] })
+  @IsOptional()
+  @IsString()
+  narratorRole?: string;
+
   @ApiPropertyOptional({ description: 'Seed ID to start from a pre-made scenario' })
   @IsOptional()
   @IsString()

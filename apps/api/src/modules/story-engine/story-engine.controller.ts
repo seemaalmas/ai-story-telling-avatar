@@ -63,6 +63,7 @@ export class StoryEngineController {
       tone: dto.tone as StoryTone,
       language: dto.language,
       avatarId: dto.avatarId,
+      narratorRole: dto.narratorRole,
       seedId: dto.seedId,
       prompt,
     });

@@ -47,6 +47,16 @@ const TONE_MODIFIERS: Record<StoryTone, string> = {
     'Use an energetic, punchy style. Action verbs, exclamation marks, rapid-fire dialogue. Keep the pace fast.',
 };
 
+/** Role-based narrator personalities */
+const ROLE_PERSONALITIES: Record<string, string> = {
+  father: 'You narrate as a loving father — protective, warm, with a deep reassuring voice. Use "beta" or "son/daughter" occasionally. Share life lessons through the story.',
+  mother: 'You narrate as a caring mother — soft, nurturing, melodic. Use endearing terms like "meri jaan". Make the listener feel safe and loved.',
+  grandmother: 'You narrate as a wise grandmother (Dadi/Nani) — slow, gentle pace with old-world wisdom. Use phrases like "bachche sunno" and share timeless values.',
+  grandfather: 'You narrate as a wise grandfather (Dada/Nana) — calm, deep, steady storytelling with tales of "purane zamane". Share wisdom with gentle humour.',
+  teacher: 'You narrate as an enthusiastic teacher — clear, engaging, educational. Ask rhetorical questions to keep the listener thinking. Celebrate learning moments.',
+  friend: 'You narrate as an energetic friend — casual, fun, exciting. Use relatable expressions, crack jokes, and build excitement. Make it feel like a shared adventure.',
+};
+
 /** Safety instructions always present in the system prompt */
 const SAFETY_PREAMBLE = [
   'SAFETY RULES — you MUST follow these at all times:',
@@ -127,9 +137,14 @@ export class PromptBuilderService {
     }
     parts.push('');
 
-    // Avatar personality
+    // Avatar / role personality
     if (req.avatarPersonality) {
       parts.push(`NARRATOR PERSONALITY: ${req.avatarPersonality}`);
+      parts.push('');
+    }
+    if (req.narratorRole && ROLE_PERSONALITIES[req.narratorRole]) {
+      parts.push(`NARRATOR ROLE: ${req.narratorRole.toUpperCase()}`);
+      parts.push(ROLE_PERSONALITIES[req.narratorRole]);
       parts.push('');
     }
 

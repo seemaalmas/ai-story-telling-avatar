@@ -36,6 +36,8 @@ export default function RootLayout() {
           <Stack.Screen name="auth/register" />
           <Stack.Screen name="auth/otp" />
           <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+          <Stack.Screen name="story/avatar" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="story/role" options={{ presentation: 'modal' }} />
           <Stack.Screen name="story/mode" options={{ presentation: 'modal' }} />
           <Stack.Screen name="story/playing" options={{ gestureEnabled: false }} />
           <Stack.Screen name="paywall/index" options={{ presentation: 'modal' }} />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useStoryStore } from '@/store/story.store';
+import { useStoryStore, LANGUAGES } from '@/store/story.store';
 import { ScreenShell, PrimaryButton, GhostButton, OptionCard, TextInput } from '@/components';
 import { theme } from '@/theme';
 
@@ -22,18 +22,25 @@ export default function StoryModeScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ preselect?: string; seedId?: string }>();
   const setConfig = useStoryStore((s) => s.setConfig);
+  const storeLanguage = useStoryStore((s) => s.language);
+  const setLanguage = useStoryStore((s) => s.setLanguage);
+  const avatarEmoji = useStoryStore((s) => s.avatarEmoji);
+  const avatarName = useStoryStore((s) => s.avatarName);
+  const narratorRole = useStoryStore((s) => s.narratorRole);
 
   const [mode, setMode] = useState(params.preselect ?? '');
   const [tone, setTone] = useState('');
+  const [lang, setLang] = useState(storeLanguage);
   const [prompt, setPrompt] = useState('');
-  const [step, setStep] = useState<'mode' | 'tone' | 'prompt'>('mode');
+  const [step, setStep] = useState<'mode' | 'tone' | 'language' | 'prompt'>('mode');
 
   const handleStart = () => {
     if (!mode || !tone) return;
+    setLanguage(lang);
     setConfig({
       mode: mode as 'bedtime' | 'warrior_success' | 'mythology' | 'motivation',
       tone: tone as 'calm' | 'funny' | 'energetic',
-      language: 'en',
+      language: lang,
       seedId: params.seedId,
       prompt: prompt || undefined,
     });
@@ -86,12 +93,39 @@ export default function StoryModeScreen() {
             ))}
           </View>
           <PrimaryButton
-            title="Next: Story Prompt"
-            onPress={() => setStep('prompt')}
+            title="Next: Choose Language"
+            onPress={() => setStep('language')}
             disabled={!tone}
             style={styles.nextBtn}
           />
           <GhostButton title="← Change Mode" onPress={() => setStep('mode')} />
+        </>
+      )}
+
+      {step === 'language' && (
+        <>
+          <Text style={styles.stepTitle} accessibilityRole="header">Story Language</Text>
+          <Text style={styles.stepSubtitle}>Choose the language for your story</Text>
+          <View style={styles.langGrid}>
+            {LANGUAGES.map((l) => (
+              <TouchableOpacity
+                key={l.code}
+                style={[styles.langChip, lang === l.code && styles.langChipSelected]}
+                onPress={() => setLang(l.code)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: lang === l.code }}
+              >
+                <Text style={[styles.langNative, lang === l.code && styles.langTextSelected]}>{l.native}</Text>
+                <Text style={[styles.langLabel, lang === l.code && styles.langLabelSelected]}>{l.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <PrimaryButton
+            title="Next: Story Prompt"
+            onPress={() => setStep('prompt')}
+            style={styles.nextBtn}
+          />
+          <GhostButton title="← Change Tone" onPress={() => setStep('tone')} />
         </>
       )}
 
@@ -112,12 +146,19 @@ export default function StoryModeScreen() {
           <Text style={styles.charCount}>{prompt.length}/1000</Text>
 
           <View style={styles.summary}>
+            {avatarName ? (
+              <Text style={styles.summaryLabel}>Avatar: <Text style={styles.summaryValue}>{avatarEmoji} {avatarName}</Text></Text>
+            ) : null}
+            {narratorRole ? (
+              <Text style={styles.summaryLabel}>Role: <Text style={styles.summaryValue}>{narratorRole}</Text></Text>
+            ) : null}
             <Text style={styles.summaryLabel}>Mode: <Text style={styles.summaryValue}>{MODES.find((m) => m.key === mode)?.title}</Text></Text>
             <Text style={styles.summaryLabel}>Tone: <Text style={styles.summaryValue}>{TONES.find((t) => t.key === tone)?.title}</Text></Text>
+            <Text style={styles.summaryLabel}>Language: <Text style={styles.summaryValue}>{LANGUAGES.find((l) => l.code === lang)?.native ?? lang}</Text></Text>
           </View>
 
           <PrimaryButton title="Start Story ✨" onPress={handleStart} style={styles.nextBtn} accessibilityLabel="Begin the story" />
-          <GhostButton title="← Change Tone" onPress={() => setStep('tone')} />
+          <GhostButton title="← Change Language" onPress={() => setStep('language')} />
         </>
       )}
     </ScreenShell>
@@ -135,4 +176,23 @@ const styles = StyleSheet.create({
   summary: { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.md, padding: 16, gap: 8, marginBottom: 16 },
   summaryLabel: { fontSize: 14, color: theme.colors.textSecondary },
   summaryValue: { fontWeight: '600', color: theme.colors.text },
+  langGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  langChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    minWidth: '30%',
+  },
+  langChipSelected: {
+    borderColor: theme.colors.primary,
+    backgroundColor: '#FFF5F0',
+  },
+  langNative: { fontSize: 16, fontWeight: '600', color: theme.colors.text },
+  langLabel: { fontSize: 11, color: theme.colors.textSecondary, marginTop: 2 },
+  langTextSelected: { color: theme.colors.primary },
+  langLabelSelected: { color: theme.colors.primaryDark },
 });

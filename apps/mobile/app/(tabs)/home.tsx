@@ -44,7 +44,7 @@ export default function HomeScreen() {
       {/* Quick Start */}
       <PrimaryButton
         title={t('home.createStory')}
-        onPress={() => router.push('/story/mode')}
+        onPress={() => router.push('/story/avatar')}
         style={styles.createBtn}
         accessibilityLabel="Create a new story"
       />

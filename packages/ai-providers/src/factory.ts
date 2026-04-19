@@ -1,7 +1,7 @@
 import { AIProvider, AIProviderConfig } from './interfaces';
 import { MockAIProvider } from './providers/mock.provider';
 
-export type ProviderType = 'mock' | 'openai' | 'anthropic' | 'google';
+export type ProviderType = 'mock' | 'grok' | 'openai' | 'anthropic' | 'google';
 
 /**
  * Factory for creating AI provider instances.
