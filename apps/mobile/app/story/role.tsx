@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useStoryStore, NARRATOR_ROLES } from '@/store/story.store';
 import { ScreenShell, PrimaryButton, GhostButton, OptionCard } from '@/components';
 import { theme } from '@/theme';
 
 export default function RolePickerScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ preselect?: string }>();
   const setNarratorRole = useStoryStore((s) => s.setNarratorRole);
   const avatarEmoji = useStoryStore((s) => s.avatarEmoji);
   const avatarName = useStoryStore((s) => s.avatarName);
@@ -17,7 +18,11 @@ export default function RolePickerScreen() {
   const handleNext = () => {
     if (!role) return;
     setNarratorRole(role as typeof currentRole & string);
-    router.push('/story/mode');
+    if (params.preselect) {
+      router.push({ pathname: '/story/mode', params: { preselect: params.preselect } });
+    } else {
+      router.push('/story/mode');
+    }
   };
 
   return (

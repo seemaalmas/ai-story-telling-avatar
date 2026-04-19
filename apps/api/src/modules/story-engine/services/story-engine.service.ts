@@ -294,7 +294,13 @@ export class StoryEngineService {
     const { system, user } = this.promptBuilder.buildPrompt(llmRequest);
 
     const startMs = Date.now();
-    const rawResponse = await this.llm.generate(system, user);
+    const timeoutMs = 28000;
+    const rawResponse = await Promise.race([
+      this.llm.generate(system, user),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Story generation timed out. Please try again.')), timeoutMs),
+      ),
+    ]);
     const generationMs = Date.now() - startMs;
 
     let parsed = this.promptBuilder.parseResponse(rawResponse.content);

@@ -138,12 +138,9 @@ export default function NowPlayingScreen() {
       fadeAnim.setValue(0);
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
       setIsSpeaking(true);
-      speak(currentNode.text, language, narratorRole);
-
-      const wordCount = currentNode.text.split(/\s+/).length;
-      const estimatedDuration = (wordCount / 2.5) * 1000;
-      const speakTimer = setTimeout(() => setIsSpeaking(false), estimatedDuration);
-      return () => clearTimeout(speakTimer);
+      speak(currentNode.text, language, narratorRole, () => {
+        setIsSpeaking(false);
+      });
     }
   }, [currentNode?.nodeId, fadeAnim, language, narratorRole]);
 
@@ -189,7 +186,11 @@ export default function NowPlayingScreen() {
           setSession(data.sessionId, data.node, data.turnCount);
           setPlaying(true);
         } catch (err: unknown) {
-          const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+          const axiosErr = err as { response?: { data?: { message?: string } }; code?: string; message?: string };
+          let msg = axiosErr?.response?.data?.message;
+          if (!msg && (axiosErr?.code === 'ECONNABORTED' || axiosErr?.message?.includes('timeout'))) {
+            msg = 'Story generation timed out. Please try again.';
+          }
           setError(msg ?? 'Failed to start story. Is the API running?');
         }
       };
@@ -210,7 +211,11 @@ export default function NowPlayingScreen() {
       setCurrentNode(data.node, data.turnCount);
       setPlaying(true);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const axiosErr = err as { response?: { data?: { message?: string } }; code?: string; message?: string };
+      let msg = axiosErr?.response?.data?.message;
+      if (!msg && (axiosErr?.code === 'ECONNABORTED' || axiosErr?.message?.includes('timeout'))) {
+        msg = 'Story generation timed out. Please try again.';
+      }
       setError(msg ?? 'Failed to continue story');
     }
   };

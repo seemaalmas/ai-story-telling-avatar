@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, StyleSheet, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useStoryStore, PRESET_AVATARS } from '@/store/story.store';
 import { ScreenShell, PrimaryButton, GhostButton } from '@/components';
 import { theme } from '@/theme';
 
 export default function AvatarSelectionScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ preselect?: string }>();
   const setAvatar = useStoryStore((s) => s.setAvatar);
   const currentAvatarId = useStoryStore((s) => s.avatarId);
 
@@ -61,7 +62,11 @@ export default function AvatarSelectionScreen() {
         setAvatar({ id: preset.id, emoji: preset.emoji, name: preset.name });
       }
     }
-    router.push('/story/role');
+    if (params.preselect) {
+      router.push({ pathname: '/story/role', params: { preselect: params.preselect } });
+    } else {
+      router.push('/story/role');
+    }
   };
 
   return (

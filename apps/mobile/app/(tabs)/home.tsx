@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/auth.store';
+import { useStoryStore, PRESET_AVATARS, NARRATOR_ROLES } from '@/store/story.store';
 import { ScreenShell, SectionHeader, OptionCard, EmptyState, PrimaryButton, AvatarCircle, Skeleton, BottomSheet } from '@/components';
 import { theme } from '@/theme';
 
@@ -13,18 +14,17 @@ const MODES = [
   { key: 'motivation', icon: '🚀', title: 'Motivation', subtitle: 'Inspiring journeys' },
 ];
 
-const AVATARS = [
-  { id: 'dadi', name: 'Dadi', emoji: '👵' },
-  { id: 'guru', name: 'Guru Ji', emoji: '🧓' },
-  { id: 'rani', name: 'Rani', emoji: '👑' },
-  { id: 'kavi', name: 'Kavi', emoji: '📝' },
-];
-
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const setAvatar = useStoryStore((s) => s.setAvatar);
   const [avatarSheet, setAvatarSheet] = useState(false);
+
+  const handleNarratorTap = (avatar: typeof PRESET_AVATARS[number]) => {
+    setAvatar({ id: avatar.id, emoji: avatar.emoji, name: avatar.name });
+    router.push('/story/role');
+  };
 
   return (
     <ScreenShell scroll>
@@ -56,7 +56,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             key={m.key}
             style={styles.modeCard}
-            onPress={() => router.push({ pathname: '/story/mode', params: { preselect: m.key } })}
+            onPress={() => router.push({ pathname: '/story/avatar', params: { preselect: m.key } })}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={`${m.title} mode: ${m.subtitle}`}
@@ -68,15 +68,15 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Avatars */}
+      {/* Narrators */}
       <SectionHeader title="Narrators" action="See all" onAction={() => setAvatarSheet(true)} />
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
-        data={AVATARS}
+        data={PRESET_AVATARS}
         keyExtractor={(a) => a.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.avatarItem} accessibilityLabel={`Narrator: ${item.name}`}>
+          <TouchableOpacity style={styles.avatarItem} onPress={() => handleNarratorTap(item)} accessibilityLabel={`Narrator: ${item.name} — ${item.description}`}>
             <Text style={styles.avatarEmoji}>{item.emoji}</Text>
             <Text style={styles.avatarName}>{item.name}</Text>
           </TouchableOpacity>
@@ -90,18 +90,19 @@ export default function HomeScreen() {
         icon="📚"
         title={t('home.noStories')}
         message="Start your first story and it will appear here."
-        action={<PrimaryButton title="Create Story" onPress={() => router.push('/story/mode')} />}
+        action={<PrimaryButton title="Create Story" onPress={() => router.push('/story/avatar')} />}
       />
 
-      {/* Avatar Picker Sheet */}
+      {/* Narrator Picker Sheet */}
       <BottomSheet visible={avatarSheet} onClose={() => setAvatarSheet(false)} title="Choose a Narrator">
-        {AVATARS.map((a) => (
+        {PRESET_AVATARS.map((a) => (
           <OptionCard
             key={a.id}
             icon={a.emoji}
             title={a.name}
-            onPress={() => setAvatarSheet(false)}
-            accessibilityLabel={`Select narrator ${a.name}`}
+            subtitle={a.description}
+            onPress={() => { setAvatarSheet(false); handleNarratorTap(a); }}
+            accessibilityLabel={`Select narrator ${a.name}: ${a.description}`}
           />
         ))}
       </BottomSheet>
