@@ -19,10 +19,23 @@ async function bootstrap() {
 
   const defaultOrigins = isProd
     ? ['https://admin.katha.ai']
-    : ['http://localhost:7001', 'http://localhost:7002', 'http://localhost:8081'];
+    : [/^http:\/\/localhost:\d+$/];
+
+  const envOrigins = process.env.CORS_ORIGINS;
+  const corsOrigins = envOrigins
+    ? envOrigins.split(',').map((o) => o.trim())
+    : defaultOrigins;
+
+  if (!isProd) {
+    logger.log(
+      envOrigins
+        ? `CORS: explicit origins [${envOrigins}]`
+        : 'CORS: all localhost ports (dev default)',
+    );
+  }
 
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') ?? defaultOrigins,
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Trace-Id'],

@@ -148,11 +148,9 @@ export default function LoginScreen() {
   };
 
   const handleGoogleUnconfigured = () => {
-    Alert.alert(
-      'Google Sign-In not configured',
-      'Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (and optionally iOS/Android client IDs) in your ' +
-        'apps/mobile/.env.local, then restart the dev server. See docs/LOCAL_SETUP.md §6b.',
-      [{ text: 'OK' }],
+    setError(
+      'Google Sign-In is not configured. Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID in ' +
+        'apps/mobile/.env.local, then restart the dev server. Use OTP or email/password for now.',
     );
   };
 
