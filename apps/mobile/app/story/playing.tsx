@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import { api } from '@/services/api';
 import { useStoryStore } from '@/store/story.store';
 import { ScreenShell, PrimaryButton, GhostButton, ErrorBox, Skeleton, SyntheticLabel } from '@/components';
 import { theme } from '@/theme';
@@ -10,6 +11,7 @@ const { width } = Dimensions.get('window');
 export default function NowPlayingScreen() {
   const router = useRouter();
   const {
+    sessionId,
     currentNode,
     turnCount,
     isGenerating,
@@ -18,7 +20,12 @@ export default function NowPlayingScreen() {
     error,
     mode,
     tone,
+    language,
+    seedId,
+    prompt,
+    avatarId,
     setGenerating,
+    setSession,
     setCurrentNode,
     setPlaying,
     setSubtitleIndex,
@@ -55,71 +62,56 @@ export default function NowPlayingScreen() {
     return () => clearTimeout(timer);
   }, [currentSubtitleIndex, isPlaying, currentNode, setSubtitleIndex, setPlaying]);
 
-  // Mock: start generating on mount if no node yet
+  // Start story via API on mount
   useEffect(() => {
-    if (!currentNode && !isGenerating) {
-      setGenerating(true);
-      // Simulate API call delay
-      const timer = setTimeout(() => {
-        setCurrentNode(
-          {
-            nodeId: 'mock-node-1',
-            text: 'The moonlight danced on the river as the storyteller cleared her throat. "Listen closely," she whispered, "for this tale has been waiting for you."\n\nThe wind carried the scent of jasmine through the village, and every child leaned in closer.',
-            choices: [
-              { choiceId: 'c1', label: 'Follow the river downstream', hint: 'Where the fireflies gather', icon: '🌊' },
-              { choiceId: 'c2', label: 'Climb the ancient banyan tree', hint: 'To see the stars up close', icon: '🌳' },
-              { choiceId: 'c3', label: 'Ask the storyteller a question', hint: 'She knows all the secrets', icon: '🙋' },
-            ],
-            animationCues: [
-              { timestampMs: 0, durationMs: 2000, type: 'expression', value: 'wonder', intensity: 0.8 },
-              { timestampMs: 3000, durationMs: 1500, type: 'gesture', value: 'lean_in', intensity: 0.6 },
-            ],
-            subtitles: [
-              { startMs: 0, endMs: 3000, text: 'The moonlight danced on the river as the storyteller cleared her throat.' },
-              { startMs: 3000, endMs: 5500, text: '"Listen closely," she whispered, "for this tale has been waiting for you."' },
-              { startMs: 5500, endMs: 9000, text: 'The wind carried the scent of jasmine through the village, and every child leaned in closer.' },
-            ],
-            isEnding: false,
-          },
-          1,
-        );
-        setPlaying(true);
-      }, 1500);
-      return () => clearTimeout(timer);
+    if (!currentNode && !isGenerating && !sessionId && mode && tone) {
+      const startStory = async () => {
+        setGenerating(true);
+        try {
+          const { data } = await api.post('/story-engine/start', {
+            mode,
+            tone,
+            language,
+            ...(seedId && { seedId }),
+            ...(prompt && { prompt }),
+            ...(avatarId && { avatarId }),
+          });
+          setSession(data.sessionId, data.node, data.turnCount);
+          setPlaying(true);
+        } catch (err: unknown) {
+          const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+          setError(msg ?? 'Failed to start story. Is the API running?');
+        }
+      };
+      startStory();
     }
-  }, [currentNode, isGenerating, setGenerating, setCurrentNode, setPlaying]);
+  }, [currentNode, isGenerating, sessionId, mode, tone, language, seedId, prompt, avatarId, setGenerating, setSession, setPlaying, setError]);
 
-  const handleChoice = (choiceId: string) => {
+  const handleChoice = async (choiceId: string) => {
+    if (!sessionId) return;
     setGenerating(true);
-    // TODO: call api.post('/story-engine/continue', { sessionId, choiceId })
-    setTimeout(() => {
-      setCurrentNode(
-        {
-          nodeId: `mock-node-${turnCount + 1}`,
-          text: 'The path opened before you, shimmering with possibilities. Each step revealed something new — a hidden garden, a talking parrot, a door made of clouds.',
-          choices:
-            turnCount >= 4
-              ? []
-              : [
-                  { choiceId: 'c1', label: 'Enter the hidden garden', icon: '🌺' },
-                  { choiceId: 'c2', label: 'Follow the parrot', icon: '🦜' },
-                ],
-          animationCues: [{ timestampMs: 0, durationMs: 2000, type: 'expression', value: 'excited', intensity: 0.9 }],
-          subtitles: [
-            { startMs: 0, endMs: 3000, text: 'The path opened before you, shimmering with possibilities.' },
-            { startMs: 3000, endMs: 6500, text: 'Each step revealed something new — a hidden garden, a talking parrot, a door made of clouds.' },
-          ],
-          isEnding: turnCount >= 4,
-        },
-        turnCount + 1,
-      );
+    try {
+      const { data } = await api.post('/story-engine/continue', {
+        sessionId,
+        choiceId,
+      });
+      setCurrentNode(data.node, data.turnCount);
       setPlaying(true);
-    }, 1200);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(msg ?? 'Failed to continue story');
+    }
   };
 
   const handleEnd = () => {
     reset();
     router.replace('/(tabs)/home');
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    reset();
+    router.replace('/story/mode');
   };
 
   return (
@@ -136,7 +128,6 @@ export default function NowPlayingScreen() {
         <Text style={styles.avatarEmoji}>
           {mode === 'bedtime' ? '🌙' : mode === 'mythology' ? '🕉️' : mode === 'warrior_success' ? '⚔️' : '🚀'}
         </Text>
-        {/* Animation cue indicator */}
         {currentNode?.animationCues?.[0] && (
           <Text style={styles.cueIndicator}>{currentNode.animationCues[0].value}</Text>
         )}
@@ -162,7 +153,7 @@ export default function NowPlayingScreen() {
             <Skeleton width="95%" height={16} />
           </View>
         ) : error ? (
-          <ErrorBox message={error} onRetry={() => setError(null)} />
+          <ErrorBox message={error} onRetry={handleRetry} />
         ) : (
           <Animated.Text style={[styles.storyText, { opacity: fadeAnim }]} accessibilityRole="text">
             {currentNode?.text}
