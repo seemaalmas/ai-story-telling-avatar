@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet, Dimensi
 import { useRouter } from 'expo-router';
 import { api } from '@/services/api';
 import { useStoryStore } from '@/store/story.store';
+import { speak, stopSpeaking } from '@/utils/tts';
 import { ScreenShell, PrimaryButton, GhostButton, ErrorBox, Skeleton, SyntheticLabel } from '@/components';
 import { theme } from '@/theme';
 
@@ -36,13 +37,19 @@ export default function NowPlayingScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<ScrollView>(null);
 
-  // Fade in when new node arrives
+  // Fade in + speak when new node arrives
   useEffect(() => {
     if (currentNode) {
       fadeAnim.setValue(0);
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+      speak(currentNode.text, language);
     }
-  }, [currentNode?.nodeId, fadeAnim]);
+  }, [currentNode?.nodeId, fadeAnim, language]);
+
+  // Stop TTS on unmount
+  useEffect(() => {
+    return () => stopSpeaking();
+  }, []);
 
   // Auto-advance subtitles
   useEffect(() => {
@@ -89,6 +96,7 @@ export default function NowPlayingScreen() {
 
   const handleChoice = async (choiceId: string) => {
     if (!sessionId) return;
+    stopSpeaking();
     setGenerating(true);
     try {
       const { data } = await api.post('/story-engine/continue', {
@@ -104,6 +112,7 @@ export default function NowPlayingScreen() {
   };
 
   const handleEnd = () => {
+    stopSpeaking();
     reset();
     router.replace('/(tabs)/home');
   };
